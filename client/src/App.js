@@ -10,7 +10,7 @@ import Settings from './components/Settings'
 
 export default class App extends Component {
   state = {
-    user: 'John Smith',
+    username: 'johnsmith',
     users: [],
     socket: {},
     pages: ['Home', 'History', 'Settings'],
@@ -26,13 +26,13 @@ export default class App extends Component {
     })
   }
 
-  loginUser = user => {
-    this.setState({ user })
+  loginUser = username => {
+    this.setState({ username })
   }
 
   logoutUser = () => {
-    const user = ''
-    this.setState({ user })
+    const username = ''
+    this.setState({ username })
   }
 
   setPage = active => {
@@ -51,7 +51,7 @@ export default class App extends Component {
   }
 
   render() {
-    const { user, users, pages, active } = this.state
+    const { username, users, pages, active } = this.state
     const { loginUser, logoutUser, setPage, handleSearch } = this
 
     return (
@@ -63,7 +63,7 @@ export default class App extends Component {
             </span>
           </div>
           <div className="collapse navbar-collapse">
-            {user ? (
+            {username ? (
               <>
                 <ul className="navbar-nav mr-auto">
                   {pages.map(page => (
@@ -92,13 +92,13 @@ export default class App extends Component {
             )}
           </div>
         </nav>
-        {user ? (
+        {username ? (
           active === 'Home' ? (
-            <Home user={user} onSearch={handleSearch} />
+            <Home username={username} onSearch={handleSearch} />
           ) : active === 'History' ? (
-            <History user={user} />
+            <History username={username} />
           ) : (
-            <Settings user={user} />
+            <Settings username={username} />
           )
         ) : (
           <Login loginUser={loginUser} users={users} />
