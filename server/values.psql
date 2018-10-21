@@ -1,0 +1,178 @@
+
+INSERT INTO media VALUES 
+  (0, 0),
+  (1, 0),
+  (2, 0),
+  (3, 1),
+  (4, 1),
+  (5, 1),
+  (6, 1),
+  (7, 1),
+  (8, 2),
+  (9, 2),
+  (10, 2),
+  (11, 2),
+  (12, 2);
+
+INSERT INTO movies VALUES
+  (0, 'Science Fiction', FALSE, 1977, 'Star Wars Episode IV: A New Hope'),
+  (1, 'Science Fiction', FALSE, 1980, 'Star Wars Episode V: The Empire Strikes Back'),
+  (2, 'Science Fiction', FALSE, 1983, 'Star Wars Episode VI: Return of the Jedi');
+
+INSERT INTO tv_shows VALUES 
+  (3, 'Adventure', TRUE, 7, 'Game of Thrones'),
+  (8, 'Comedy', FALSE, 11, 'SpongeBob SquarePants');
+
+INSERT INTO seasons VALUES
+  (4, 3, 3, 1, 'Game of Thrones: Season 1'),
+  (9, 8, 3, 1, 'SpongeBob SquarePants: Season 1');
+
+INSERT INTO episodes VALUES
+  (5, 3, 4, 2011, 1, 'Winter Is Coming'),
+  (6, 3, 4, 2011, 2, 'The Kingsroad'),
+  (7, 3, 4, 2011, 3, 'Lord Snow'),
+  (10, 8, 9, 1999, 1, 'Help Wanted'),
+  (11, 8, 9, 1999, 2, 'Reef Blower'),
+  (12, 8, 9, 1999, 3, 'Tea at the Treedome');
+
+INSERT INTO closed_captions VALUES
+  (0, 'English'),
+  (0, 'Swedish'),
+  (0, 'Mandarin'),
+  (1, 'English'),
+  (1, 'Swedish'),
+  (1, 'Mandarin'),
+  (2, 'English'),
+  (2, 'Swedish'),
+  (2, 'Mandarin'),
+  (3, 'English'),
+  (3, 'Swedish'),
+  (3, 'French'),
+  (8, 'English'),
+  (8, 'Finnish'),
+  (8, 'Swedish');
+
+INSERT INTO audio_languages VALUES 
+  (0, 'English'),
+  (0, 'Swedish'),
+  (0, 'Spanish'),
+  (1, 'English'),
+  (1, 'Swedish'),
+  (1, 'Spanish'),
+  (2, 'English'),
+  (2, 'Swedish'),
+  (2, 'Spanish'),
+  (3, 'English'),
+  (3, 'Swedish'),
+  (3, 'French'),
+  (3, 'German'),
+  (8, 'English'),
+  (8, 'Finnish'),
+  (8, 'Mandarin'),
+  (8, 'Cantonese'),
+  (8, 'Swedish');
+
+INSERT INTO production_companies VALUES
+  (0, 'LucasArts'),
+  (1, 'HBO'),
+  (2, 'Nickelodeon');
+
+INSERT INTO directors VALUES
+  ('George Lucas', 0),
+  ('Irvin Kershner', 1),
+  ('Richard Marquand', 2),
+  ('Tim Van Patten', 5),
+  ('Tim Van Patten', 6),
+  ('Brian Kirk', 7),
+  ('Alarn Smart', 10),
+  ('Fred Miller', 11),
+  ('Tom Yasumi', 11),
+  ('Edgar Larrazabal', 12),
+  ('Tom Yasumi', 12);
+
+INSERT INTO actors VALUES
+  ('Daniel Prowse', 'Darth Vader', 0),
+  ('Daniel Prowse', 'Darth Vader', 1),
+  ('Daniel Prowse', 'Darth Vader', 2),
+  ('Mark Hamill', 'Luke Skywalker', 0),
+  ('Mark Hamill', 'Luke Skywalker', 1),
+  ('Mark Hamill', 'Luke Skywalker', 2),
+  ('Carrie Fisher', 'Leia Organa', 0),
+  ('Carrie Fisher', 'Leia Organa', 1),
+  ('Carrie Fisher', 'Leia Organa', 2),
+  ('Emilia Clarke', 'Daenerys Targaryen', 3),
+  ('Kit Harington', 'Jon Snow', 3),
+  ('Lena Headey', 'Cersei Lannister', 3),
+  ('Tom Kenny', 'SpongeBob SquarePants', 8),
+  ('Bill Fagerbakke', 'Patrick Seastar', 8),
+  ('Rodger Bumpass', 'Squidward Tentacles', 8);
+
+INSERT INTO users VALUES
+  (0, 'johnsmith', 42, 'johnsmith@mail.com', '0729387392', 20150203, 20190302, TRUE, FALSE),
+  (1, 'mariasmith', 40, 'mariasmith@mail.com', '0726257251', 20150203, 20190302, TRUE, FALSE),
+  (2, 'bobsmith', 40, 'bobsmith@mail.com', '0717622651', 20150203, 20190302, TRUE, TRUE),
+  (3, 'marysmith', 40, 'marysmith@mail.com', '0728122222', 20150203, 20190302, TRUE, FALSE);
+
+INSERT INTO subscriptions VALUES
+  (0, 3),
+  (0, 8),
+  (1, 3),
+  (2, 8),
+  (3, 3);
+
+INSERT INTO history VALUES
+  (0, 0),
+  (0, 1),
+  (0, 2),
+  (0, 5),
+  (0, 6),
+  (0, 7),
+  (0, 10),
+  (0, 11),
+  (1, 5),
+  (1, 6),
+  (2, 0),
+  (2, 1),
+  (2, 5),
+  (3, 2),
+  (3, 10),
+  (3, 6);
+
+INSERT INTO locale VALUES 
+  (0, 0, 'Swedish', 'English'),
+  (0, 1, 'Swedish', 'English'),
+  (0, 2, 'Swedish', 'Swedish'),
+  (0, 3, 'Swedish', 'English'),
+  (0, 8, NULL, 'Swedish'),
+  (1, 3, 'English', 'English'),
+  (2, 8, 'Swedish', 'Swedish'),
+  (3, 2, 'Swedish', 'English'),
+  (3, 3, 'English', 'English'),
+  (3, 8, 'Swedish', 'English');
+
+INSERT INTO completed VALUES 
+  (0, 0),
+  (0, 1),
+  (0, 2),
+  (0, 4),
+  (2, 0),
+  (2, 1),
+  (3, 2);
+
+INSERT INTO ratings VALUES 
+  (0, 0, 5),
+  (0, 1, 5),
+  (0, 2, 4),
+  (0, 5, 4),
+  (0, 6, 5),
+  (0, 7, NULL),
+  (0, 10, NULL),
+  (0, 11, 2),
+  (1, 5, 2),
+  (1, 6, 2),
+  (2, 0, 3),
+  (2, 1, 4),
+  (2, 5, 3),
+  (3, 2, 5),
+  (3, 10, 3),
+  (3, 6, 3);

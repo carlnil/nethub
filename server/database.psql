@@ -1,0 +1,114 @@
+CREATE TABLE media (
+  id INTEGER PRIMARY KEY,
+  company_id INTEGER REFERENCES production_companies(id)
+);
+
+CREATE TABLE movies (
+  media_id INTEGER PRIMARY KEY REFERENCES media(id),
+  genre VARCHAR(16),
+  is_mature BOOLEAN,
+  year_released INTEGER,
+  title VARCHAR(255)
+);
+
+CREATE TABLE tv_shows (
+  media_id INTEGER PRIMARY KEY REFERENCES media(id),
+  genre VARCHAR(16),
+  is_mature BOOLEAN,
+  season_count INTEGER,
+  title VARCHAR(255)
+);
+
+CREATE TABLE seasons (
+  media_id INTEGER PRIMARY KEY REFERENCES media(id),
+  tv_show_id INTEGER REFERENCES tv_shows(media_id),
+  episode_count INTEGER,
+  season_number INTEGER,
+  title VARCHAR(255)
+);
+
+CREATE TABLE episodes (
+  media_id INTEGER PRIMARY KEY REFERENCES media(id),
+  tv_show_id INTEGER REFERENCES tv_shows(media_id),
+  season_id INTEGER REFERENCES seasons(media_id),
+  year_released INTEGER,
+  episode_number INTEGER,
+  title VARCHAR(255)
+);
+
+CREATE TABLE closed_captions (
+  media_id INTEGER REFERENCES media(id),
+  cc_language VARCHAR(16),
+  PRIMARY KEY (media_id, cc_language)
+);
+
+CREATE TABLE audio_languages (
+  media_id INTEGER REFERENCES media(id),
+  audio_language VARCHAR(16),
+  PRIMARY KEY (media_id, audio_language)
+);
+
+CREATE TABLE production_companies (
+  id INTEGER PRIMARY KEY,
+  company VARCHAR(255)
+);
+
+CREATE TABLE directors (
+  fullname VARCHAR(255),
+  media_id INTEGER REFERENCES media(id),
+  PRIMARY KEY (fullname, media_id)
+);
+
+CREATE TABLE actors (
+  fullname VARCHAR(255),
+  acting_as VARCHAR(255),
+  media_id INTEGER REFERENCES media(id),
+  PRIMARY KEY (fullname, media_id)
+);
+
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY,
+  username VARCHAR(16) NOT NULL,
+  age INTEGER,
+  email VARCHAR(255),
+  number VARCHAR(30),
+  creation_date INTEGER,
+  expiration_date INTEGER,
+  payment_status BOOLEAN,
+  content_filtered BOOLEAN
+);
+
+CREATE TABLE subscriptions (
+  user_id INTEGER REFERENCES users(id),
+  media_id INTEGER REFERENCES media(id),
+  PRIMARY KEY (user_id, media_id)
+);
+
+CREATE TABLE history (
+  user_id INTEGER REFERENCES users(id),
+  media_id INTEGER REFERENCES media(id),
+  PRIMARY KEY (user_id, media_id)
+);
+
+CREATE TABLE locale (
+  user_id INTEGER REFERENCES users(id),
+  media_id INTEGER REFERENCES media(id),
+  cc_language VARCHAR(16),
+  audio_language VARCHAR(16),
+  PRIMARY KEY (user_id, media_id),
+  FOREIGN KEY (media_id, cc_language) REFERENCES closed_captions(media_id, cc_language),
+  FOREIGN KEY (media_id, audio_language) REFERENCES audio_languages(media_id, audio_language)
+);
+
+CREATE TABLE completed (
+  user_id INTEGER REFERENCES users(id),
+  media_id INTEGER REFERENCES media(id),
+  PRIMARY KEY (user_id, media_id)
+);
+
+CREATE TABLE ratings (
+  user_id INTEGER REFERENCES users(id),
+  media_id INTEGER REFERENCES media(id),
+  rating INTEGER CHECK (rating >= 0 AND rating <= 5),
+  PRIMARY KEY (user_id, media_id)
+);

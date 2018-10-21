@@ -4,8 +4,10 @@
   "private": true,
   "dependencies": {
     "react": "^16.5.2",
+    "react-checkbox-group": "^4.0.1",
     "react-dom": "^16.5.2",
     "react-scripts": "2.0.5",
+    "socket.io": "^2.1.1",
     "styled-components": "^4.0.2"
   },
   "scripts": {
