@@ -1,3 +1,7 @@
+INSERT INTO production_companies VALUES
+  (0, 'LucasArts'),
+  (1, 'HBO'),
+  (2, 'Nickelodeon');
 
 INSERT INTO media VALUES 
   (0, 0),
@@ -71,11 +75,6 @@ INSERT INTO audio_languages VALUES
   (8, 'Mandarin'),
   (8, 'Cantonese'),
   (8, 'Swedish');
-
-INSERT INTO production_companies VALUES
-  (0, 'LucasArts'),
-  (1, 'HBO'),
-  (2, 'Nickelodeon');
 
 INSERT INTO directors VALUES
   ('George Lucas', 0),

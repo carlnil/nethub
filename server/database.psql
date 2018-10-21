@@ -1,3 +1,9 @@
+CREATE TABLE production_companies (
+  id INTEGER PRIMARY KEY,
+  company VARCHAR(255)
+);
+
+
 CREATE TABLE media (
   id INTEGER PRIMARY KEY,
   company_id INTEGER REFERENCES production_companies(id)
@@ -46,11 +52,6 @@ CREATE TABLE audio_languages (
   media_id INTEGER REFERENCES media(id),
   audio_language VARCHAR(16),
   PRIMARY KEY (media_id, audio_language)
-);
-
-CREATE TABLE production_companies (
-  id INTEGER PRIMARY KEY,
-  company VARCHAR(255)
 );
 
 CREATE TABLE directors (
