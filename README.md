@@ -1,12 +1,12 @@
 ### Lab 2 for DD1368 Database Technology at KTH Royal Institute of Technology
 
-To start, navigate to client directory at /client and execute the following command.
+To start, open a command prompt and navigate to client directory at /client and execute the following command.
 
 ```
 npm run start
 ```
 
-Do the same in the server directory at /server.
+Do the same in the server directory at /server in another command prompt.
 
 Follow steps below to load database.
 

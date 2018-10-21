@@ -32,12 +32,12 @@ INSERT INTO seasons VALUES
   (9, 8, 3, 1, 'SpongeBob SquarePants: Season 1');
 
 INSERT INTO episodes VALUES
-  (5, 3, 4, 2011, 1, 'Winter Is Coming'),
-  (6, 3, 4, 2011, 2, 'The Kingsroad'),
-  (7, 3, 4, 2011, 3, 'Lord Snow'),
-  (10, 8, 9, 1999, 1, 'Help Wanted'),
-  (11, 8, 9, 1999, 2, 'Reef Blower'),
-  (12, 8, 9, 1999, 3, 'Tea at the Treedome');
+  (5, 4, 2011, 1, 'Winter Is Coming'),
+  (6, 4, 2011, 2, 'The Kingsroad'),
+  (7, 4, 2011, 3, 'Lord Snow'),
+  (10, 9, 1999, 1, 'Help Wanted'),
+  (11, 9, 1999, 2, 'Reef Blower'),
+  (12, 9, 1999, 3, 'Tea at the Treedome');
 
 INSERT INTO closed_captions VALUES
   (0, 'English'),

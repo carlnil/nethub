@@ -3,7 +3,6 @@ CREATE TABLE production_companies (
   company VARCHAR(255)
 );
 
-
 CREATE TABLE media (
   id INTEGER PRIMARY KEY,
   company_id INTEGER REFERENCES production_companies(id)
@@ -35,10 +34,9 @@ CREATE TABLE seasons (
 
 CREATE TABLE episodes (
   media_id INTEGER PRIMARY KEY REFERENCES media(id),
-  tv_show_id INTEGER REFERENCES tv_shows(media_id),
   season_id INTEGER REFERENCES seasons(media_id),
   year_released INTEGER,
-  episode_number INTEGER,
+  episode_number INTEGER, 
   title VARCHAR(255)
 );
 
