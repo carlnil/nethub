@@ -9,9 +9,9 @@ export default function Login({ loginUser, users }) {
       <Line />
       <Cards>
         {users.map(user => {
-          const username = user.content_filtered
-            ? `${user.username} 👶`
-            : user.username
+          const name = user.content_filtered
+            ? `${user.name} 👶`
+            : user.name
 
           return (
             <Card
@@ -21,7 +21,7 @@ export default function Login({ loginUser, users }) {
             >
               <div className="card-body">
                 <p className="card-text text-center font-weight-bold">
-                  {username}
+                  {name}
                 </p>
               </div>
             </Card>

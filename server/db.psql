@@ -1,45 +1,47 @@
 CREATE TABLE production_companies (
   id INTEGER PRIMARY KEY,
-  company VARCHAR(255)
+  name VARCHAR(255)
 );
-
 
 CREATE TABLE media (
   id INTEGER PRIMARY KEY,
+  category VARCHAR(7) CHECK (category = 'movie' OR category = 'episode')
 );
 
 CREATE TABLE movies (
-  media_id INTEGER PRIMARY KEY REFERENCES media(id),
-  company_id INTEGER REFERENCES production_companies(id),
-  genre VARCHAR(16),
+  id INTEGER PRIMARY KEY REFERENCES media(id),
+  prod_company INTEGER REFERENCES production_companies(id),
+  genre VARCHAR(255),
   is_mature BOOLEAN,
-  year_released INTEGER,
-  title VARCHAR(255)
+  title VARCHAR(255),
+  release_year INTEGER
 );
 
-CREATE TABLE tv_shows (
-  media_id INTEGER PRIMARY KEY REFERENCES media(id),
-  company_id INTEGER REFERENCES production_companies(id)
-  genre VARCHAR(16),
+CREATE TABLE series (
+  id INTEGER PRIMARY KEY,
+  prod_company INTEGER REFERENCES production_companies(id),
+  genre VARCHAR(255),
   is_mature BOOLEAN,
   season_count INTEGER,
   title VARCHAR(255)
 );
 
 CREATE TABLE seasons (
-  media_id INTEGER PRIMARY KEY REFERENCES media(id),
-  tv_show_id INTEGER REFERENCES tv_shows(media_id),
-  episode_count INTEGER,
+  series_id INTEGER REFERENCES series(id),
   season_number INTEGER,
-  title VARCHAR(255)
+  episode_count INTEGER,
+  title VARCHAR(255),
+  PRIMARY KEY (series_id, season_number)
 );
 
 CREATE TABLE episodes (
-  media_id INTEGER PRIMARY KEY REFERENCES media(id),
-  season_id INTEGER REFERENCES seasons(media_id),
-  year_released INTEGER,
+  id INTEGER PRIMARY KEY REFERENCES media(id),
+  series_id INTEGER,
+  season_number INTEGER,
   episode_number INTEGER,
-  title VARCHAR(255)
+  title VARCHAR(255),
+  release_year INTEGER,
+  FOREIGN KEY (series_id, season_number) REFERENCES seasons(series_id, season_number)
 );
 
 CREATE TABLE closed_captions (
@@ -55,9 +57,9 @@ CREATE TABLE audio_languages (
 );
 
 CREATE TABLE directors (
-  fullname VARCHAR(255),
+  name VARCHAR(255),
   media_id INTEGER REFERENCES media(id),
-  PRIMARY KEY (fullname, media_id)
+  PRIMARY KEY (name, media_id)
 );
 
 CREATE TABLE actors (
@@ -81,8 +83,8 @@ CREATE TABLE users (
 
 CREATE TABLE subscriptions (
   user_id INTEGER REFERENCES users(id),
-  media_id INTEGER REFERENCES media(id),
-  PRIMARY KEY (user_id, media_id)
+  series_id INTEGER REFERENCES series(id),
+  PRIMARY KEY (user_id, series_id)
 );
 
 CREATE TABLE history (
@@ -101,10 +103,11 @@ CREATE TABLE locale (
   FOREIGN KEY (media_id, audio_language) REFERENCES audio_languages(media_id, audio_language)
 );
 
-CREATE TABLE completed (
+CREATE TABLE completed_seasons (
   user_id INTEGER REFERENCES users(id),
-  media_id INTEGER REFERENCES media(id),
-  PRIMARY KEY (user_id, media_id)
+  series_id INTEGER,
+  season_number INTEGER,
+  FOREIGN KEY (series_id, season_number) REFERENCES seasons(series_id, season_number)
 );
 
 CREATE TABLE ratings (

@@ -4,40 +4,30 @@ INSERT INTO production_companies VALUES
   (2, 'Nickelodeon');
 
 INSERT INTO media VALUES 
-  (0, 0),
-  (1, 0),
-  (2, 0),
-  (3, 1),
-  (4, 1),
-  (5, 1),
-  (6, 1),
-  (7, 1),
-  (8, 2),
-  (9, 2),
-  (10, 2),
-  (11, 2),
-  (12, 2);
+  (0, 'movie'), (1, 'movie'), (2, 'movie'), 
+  (3, 'episode'), (4, 'episode'), (5, 'episode'), 
+  (6, 'episode'), (7, 'episode'), (8, 'episode');
 
 INSERT INTO movies VALUES
-  (0, 'Science Fiction', FALSE, 1977, 'Star Wars Episode IV: A New Hope'),
-  (1, 'Science Fiction', FALSE, 1980, 'Star Wars Episode V: The Empire Strikes Back'),
-  (2, 'Science Fiction', FALSE, 1983, 'Star Wars Episode VI: Return of the Jedi');
+  (0, 0, 'Science Fiction', FALSE, 'Star Wars Episode IV: A New Hope', 1977),
+  (1, 0, 'Science Fiction', FALSE, 'Star Wars Episode V: The Empire Strikes Back', 1980),
+  (2, 0, 'Science Fiction', FALSE, 'Star Wars Episode VI: Return of the Jedi', 1983);
 
-INSERT INTO tv_shows VALUES 
-  (3, 'Adventure', TRUE, 7, 'Game of Thrones'),
-  (8, 'Comedy', FALSE, 11, 'SpongeBob SquarePants');
+INSERT INTO series VALUES 
+  (0, 1, 'Adventure', TRUE, 7, 'Game of Thrones'),
+  (1, 2, 'Comedy', FALSE, 11, 'SpongeBob SquarePants');
 
 INSERT INTO seasons VALUES
-  (4, 3, 3, 1, 'Game of Thrones: Season 1'),
-  (9, 8, 3, 1, 'SpongeBob SquarePants: Season 1');
+  (0, 1, 3, 'Game of Thrones: Season 1'),
+  (1, 1, 3, 'SpongeBob SquarePants: Season 1');
 
 INSERT INTO episodes VALUES
-  (5, 4, 2011, 1, 'Winter Is Coming'),
-  (6, 4, 2011, 2, 'The Kingsroad'),
-  (7, 4, 2011, 3, 'Lord Snow'),
-  (10, 9, 1999, 1, 'Help Wanted'),
-  (11, 9, 1999, 2, 'Reef Blower'),
-  (12, 9, 1999, 3, 'Tea at the Treedome');
+  (3, 0, 1, 1, 'Winter Is Coming', 2011),
+  (4, 0, 1, 2, 'The Kingsroad', 2011),
+  (5, 0, 1, 3, 'Lord Snow', 2011),
+  (6, 1, 1, 1, 'Help Wanted', 1999),
+  (7, 1, 1, 2, 'Reef Blower', 1999),
+  (8, 1, 1, 3, 'Tea at the Treedome', 1999);
 
 INSERT INTO closed_captions VALUES
   (0, 'English'),
@@ -48,46 +38,70 @@ INSERT INTO closed_captions VALUES
   (1, 'Mandarin'),
   (2, 'English'),
   (2, 'Swedish'),
-  (2, 'Mandarin'),
+  (2, 'Spanish'),
   (3, 'English'),
   (3, 'Swedish'),
-  (3, 'French'),
-  (8, 'English'),
+  (4, 'French'),
+  (4, 'Swedish'),
+  (4, 'English'),
+  (5, 'Swedish'),
+  (5, 'French'),
+  (5, 'English'),
+  (5, 'Mandarin'),
+  (6, 'English'),
+  (6, 'Finnish'),
+  (6, 'Swedish'),
+  (7, 'Finnish'),
+  (7, 'Swedish'),
+  (7, 'English'),
   (8, 'Finnish'),
+  (8, 'English'),
   (8, 'Swedish');
 
 INSERT INTO audio_languages VALUES 
   (0, 'English'),
   (0, 'Swedish'),
-  (0, 'Spanish'),
+  (0, 'Mandarin'),
+  (0, 'Cantose'),
   (1, 'English'),
   (1, 'Swedish'),
-  (1, 'Spanish'),
+  (1, 'Mandarin'),
   (2, 'English'),
   (2, 'Swedish'),
   (2, 'Spanish'),
   (3, 'English'),
   (3, 'Swedish'),
-  (3, 'French'),
-  (3, 'German'),
+  (4, 'French'),
+  (4, 'Swedish'),
+  (4, 'English'),
+  (5, 'Swedish'),
+  (5, 'English'),
+  (5, 'French'),
+  (5, 'German'),
+  (5, 'Mandarin'),
+  (6, 'English'),
+  (6, 'Finnish'),
+  (6, 'Swedish'),
+  (7, 'English'),
+  (7, 'Finnish'),
+  (7, 'Swedish'),
+  (7, 'Catalonian'),
   (8, 'English'),
   (8, 'Finnish'),
-  (8, 'Mandarin'),
-  (8, 'Cantonese'),
   (8, 'Swedish');
 
 INSERT INTO directors VALUES
   ('George Lucas', 0),
   ('Irvin Kershner', 1),
   ('Richard Marquand', 2),
-  ('Tim Van Patten', 5),
-  ('Tim Van Patten', 6),
-  ('Brian Kirk', 7),
-  ('Alarn Smart', 10),
-  ('Fred Miller', 11),
-  ('Tom Yasumi', 11),
-  ('Edgar Larrazabal', 12),
-  ('Tom Yasumi', 12);
+  ('Tim Van Patten', 3),
+  ('Tim Van Patten', 4),
+  ('Brian Kirk', 5),
+  ('Alarn Smart', 6),
+  ('Fred Miller', 7),
+  ('Tom Yasumi', 7),
+  ('Edgar Larrazabal', 8),
+  ('Tom Yasumi', 8);
 
 INSERT INTO actors VALUES
   ('Daniel Prowse', 'Darth Vader', 0),
@@ -100,78 +114,95 @@ INSERT INTO actors VALUES
   ('Carrie Fisher', 'Leia Organa', 1),
   ('Carrie Fisher', 'Leia Organa', 2),
   ('Emilia Clarke', 'Daenerys Targaryen', 3),
+  ('Emilia Clarke', 'Daenerys Targaryen', 4),
+  ('Emilia Clarke', 'Daenerys Targaryen', 5),
   ('Kit Harington', 'Jon Snow', 3),
+  ('Kit Harington', 'Jon Snow', 4),
+  ('Kit Harington', 'Jon Snow', 5),
   ('Lena Headey', 'Cersei Lannister', 3),
+  ('Lena Headey', 'Cersei Lannister', 4),
+  ('Lena Headey', 'Cersei Lannister', 5),
+  ('Tom Kenny', 'SpongeBob SquarePants', 6),
+  ('Tom Kenny', 'SpongeBob SquarePants', 7),
   ('Tom Kenny', 'SpongeBob SquarePants', 8),
+  ('Bill Fagerbakke', 'Patrick Seastar', 6),
+  ('Bill Fagerbakke', 'Patrick Seastar', 7),
   ('Bill Fagerbakke', 'Patrick Seastar', 8),
+  ('Rodger Bumpass', 'Squidward Tentacles', 6),
+  ('Rodger Bumpass', 'Squidward Tentacles', 7),
   ('Rodger Bumpass', 'Squidward Tentacles', 8);
 
 INSERT INTO users VALUES
-  (0, 'johnsmith', 42, 'johnsmith@mail.com', '0729387392', 20150203, 20190302, TRUE, FALSE),
-  (1, 'mariasmith', 40, 'mariasmith@mail.com', '0726257251', 20150203, 20190302, TRUE, FALSE),
-  (2, 'bobsmith', 40, 'bobsmith@mail.com', '0717622651', 20150203, 20190302, TRUE, TRUE),
-  (3, 'marysmith', 40, 'marysmith@mail.com', '0728122222', 20150203, 20190302, TRUE, FALSE);
+  (0, 'John Smith', 42, 'johnsmith@mail.com', '0729387392', 20150203, 20190302, TRUE, FALSE),
+  (1, 'Maria Smith', 40, 'mariasmith@mail.com', '0726257251', 20150203, 20190302, TRUE, FALSE),
+  (2, 'Bob Smith', 40, 'bobsmith@mail.com', '0717622651', 20150203, 20190302, TRUE, TRUE),
+  (3, 'Mary Smith', 40, 'marysmith@mail.com', '0728122222', 20150203, 20190302, TRUE, FALSE);
 
 INSERT INTO subscriptions VALUES
-  (0, 3),
-  (0, 8),
-  (1, 3),
-  (2, 8),
-  (3, 3);
+  (0, 0),
+  (0, 1),
+  (1, 0),
+  (2, 1),
+  (3, 0);
 
 INSERT INTO history VALUES
   (0, 0),
   (0, 1),
   (0, 2),
+  (0, 3),
+  (0, 4),
   (0, 5),
   (0, 6),
   (0, 7),
-  (0, 10),
-  (0, 11),
-  (1, 5),
-  (1, 6),
+  (1, 3),
+  (1, 4),
   (2, 0),
   (2, 1),
-  (2, 5),
+  (2, 6),
   (3, 2),
-  (3, 10),
-  (3, 6);
+  (3, 6),
+  (3, 7);
 
 INSERT INTO locale VALUES 
   (0, 0, 'Swedish', 'English'),
   (0, 1, 'Swedish', 'English'),
   (0, 2, 'Swedish', 'Swedish'),
   (0, 3, 'Swedish', 'English'),
-  (0, 8, NULL, 'Swedish'),
+  (0, 4, 'Swedish', 'English'),
+  (0, 5, 'Swedish', 'English'),
+  (0, 6, NULL, 'Swedish'),
+  (0, 7, NULL, 'Swedish'),
   (1, 3, 'English', 'English'),
-  (2, 8, 'Swedish', 'Swedish'),
+  (1, 4, 'English', 'English'),
+  (2, 0, 'Swedish', 'Swedish'),
+  (2, 1, 'Swedish', 'Swedish'),
+  (2, 6, 'Swedish', 'Swedish'),
   (3, 2, 'Swedish', 'English'),
-  (3, 3, 'English', 'English'),
-  (3, 8, 'Swedish', 'English');
+  (3, 6, 'Swedish', 'English'),
+  (3, 7, 'Swedish', 'English');
 
-INSERT INTO completed VALUES 
+INSERT INTO completed_seasons VALUES 
   (0, 0),
   (0, 1),
-  (0, 2),
+  (0, 3),
   (0, 4),
-  (2, 0),
-  (2, 1),
-  (3, 2);
+  (0, 5),
+  (0, 6),
+  (0, 7),
+  (1, 3),
+  (2, 6),
+  (3, 2),
+  (3, 7);
 
 INSERT INTO ratings VALUES 
   (0, 0, 5),
-  (0, 1, 5),
-  (0, 2, 4),
-  (0, 5, 4),
-  (0, 6, 5),
-  (0, 7, NULL),
-  (0, 10, NULL),
-  (0, 11, 2),
-  (1, 5, 2),
-  (1, 6, 2),
-  (2, 0, 3),
-  (2, 1, 4),
-  (2, 5, 3),
-  (3, 2, 5),
-  (3, 10, 3),
-  (3, 6, 3);
+  (0, 1, 4),
+  (0, 3, 3),
+  (0, 4, 3),
+  (0, 5, 5),
+  (0, 6, 4),
+  (0, 7, 3),
+  (1, 3, 2),
+  (2, 6, 3),
+  (3, 2, 4),
+  (3, 7, 5);
