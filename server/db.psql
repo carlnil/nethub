@@ -72,13 +72,19 @@ CREATE TABLE actors (
 CREATE TABLE users (
   id INTEGER PRIMARY KEY,
   name VARCHAR(16) NOT NULL,
-  age INTEGER,
   email VARCHAR(255),
   number VARCHAR(30),
-  creation_date INTEGER,
-  expiration_date INTEGER,
+  birth_date DATE,
+  creation_date DATE,
+  expiration_date DATE,
   payment_status BOOLEAN,
   content_filtered BOOLEAN
+);
+
+CREATE TABLE children (
+  child_id INTEGER REFERENCES users(id),
+  parent_id INTEGER REFERENCES users(id),
+  PRIMARY KEY (child_id, parent_id)
 );
 
 CREATE TABLE subscriptions (

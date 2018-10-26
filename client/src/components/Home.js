@@ -2,8 +2,12 @@ import React, { Component } from 'react'
 import { Checkbox, CheckboxGroup } from 'react-checkbox-group'
 import styled from 'styled-components'
 
-const radios = ['Movies', 'TV shows']
 const ratings = [5, 4, 3, 2, 1]
+
+const radios = [
+  { val: 'movies', type: 'Movies' },
+  { val: 'series', type: 'TV shows' },
+]
 const checkboxes = [
   'Name',
   'Genre',
@@ -13,9 +17,28 @@ const checkboxes = [
   'Director',
 ]
 
+function mapMedia(media) {
+  return media.map(media => {
+    const title = media.is_mature ? `${media.title} 🔞` : media.title
+    const rating = `${media.rating}/5`
+
+    return (
+      <div key={media.id}>
+        <h2>{title}</h2>
+        <h2>{media.series}</h2>
+        <h3>{media.title}</h3>
+        <h5>{media.season}</h5>
+        <h4>Rating: {rating}</h4>
+        <hr />
+        <br />
+      </div>
+    )
+  })
+}
+
 export default class Home extends Component {
   state = {
-    radio: 'Movies',
+    radio: 'movies',
     rating: '',
     categories: ['Name'],
   }
@@ -33,13 +56,16 @@ export default class Home extends Component {
   }
 
   render() {
-    const { onSearch } = this.props
+    const { onSearch, media, user } = this.props
     const { categories } = this.state
     const { handleRadioChange, handleRatingChange, handleCheckboxChange } = this
 
     return (
       <Container>
-        <Form className="form-group" onSubmit={e => onSearch(e, this.state)}>
+        <Form
+          className="form-group"
+          onSubmit={e => onSearch(e, user, this.state)}
+        >
           <Searchbar
             type="text"
             className="form-control"
@@ -53,18 +79,18 @@ export default class Home extends Component {
         </Form>
         <h5>Filter by</h5>
         <Radios>
-          {radios.map(radio => (
-            <label key={radio}>
+          {radios.map(({ val, type }) => (
+            <label key={val}>
               <div className="form-check">
                 <input
                   name="content_type"
                   className="form-check-input"
                   type="radio"
-                  value={radio}
-                  defaultChecked={radio === 'Movies'}
+                  value={val}
+                  defaultChecked={val === 'movies'}
                   onChange={handleRadioChange}
                 />
-                {radio}
+                {type}
               </div>
             </label>
           ))}
@@ -92,6 +118,7 @@ export default class Home extends Component {
             </label>
           ))}
         </Checkboxes>
+        {mapMedia(media)}
       </Container>
     )
   }

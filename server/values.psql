@@ -133,10 +133,15 @@ INSERT INTO actors VALUES
   ('Rodger Bumpass', 'Squidward Tentacles', 8);
 
 INSERT INTO users VALUES
-  (0, 'John Smith', 42, 'johnsmith@mail.com', '0729387392', 20150203, 20190302, TRUE, FALSE),
-  (1, 'Maria Smith', 40, 'mariasmith@mail.com', '0726257251', 20150203, 20190302, TRUE, FALSE),
-  (2, 'Bob Smith', 40, 'bobsmith@mail.com', '0717622651', 20150203, 20190302, TRUE, TRUE),
-  (3, 'Mary Smith', 40, 'marysmith@mail.com', '0728122222', 20150203, 20190302, TRUE, FALSE);
+  (0, 'John Smith', 'johnsmith@mail.com', '0729387392', '19760213', '20150203', '20190302', TRUE, FALSE),
+  (1, 'Maria Carson', 'mariacarson@mail.com', '0726257251', '19781201', '20150203', '20190302', TRUE, FALSE),
+  (2, 'Bob Smith', 'bobsmith@mail.com', '0717622651', '20040602', '20150203', '20190302', TRUE, TRUE),
+  (3, 'Mary Carson', 'marycarson@mail.com', '0728122222', '19920602', '20150203', '20190302', TRUE, FALSE),
+  (4, 'Barack Obama', 'thewhitehouse@mail.com', '07253222222', '19560112', '20140203', '20200102', TRUE, FALSE);
+
+INSERT INTO children VALUES 
+  (0, 2), 
+  (1, 3);
 
 INSERT INTO subscriptions VALUES
   (0, 0),
