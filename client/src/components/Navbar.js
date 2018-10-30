@@ -20,7 +20,7 @@ export default function Navbar({ user, pages, active, setPage, logoutUser }) {
         </span>
       </div>
       <div className="collapse navbar-collapse">
-        {user.name ? (
+        {user ? (
           <>
             <ul className="navbar-nav mr-auto">
               {setPages(setPage, pages, active)}
