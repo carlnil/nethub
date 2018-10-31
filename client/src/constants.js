@@ -1,6 +1,15 @@
 export const SERVER = 'http://localhost:3001'
 export const CONNECTED = 'connected'
-export const QUERY = 'query'
-export const HOME = 'home'
-export const HISTORY = 'history'
+export const SEARCH = 'search'
+export const HOME = 'Home'
+export const HISTORY = 'History'
 export const PAGES = ['Home', 'History', 'Settings']
+
+export const MOVIES = 'Movies'
+export const SERIES = 'Series'
+export const NAME = 'Name'
+export const GENRE = 'Genre'
+export const DIRECTOR = 'Director'
+export const ACTOR = 'Actor'
+export const LANGUAGE = 'Language'
+export const INPUT = 'input'

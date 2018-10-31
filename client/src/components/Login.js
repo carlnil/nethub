@@ -1,28 +1,18 @@
 import React from 'react'
 import styled from 'styled-components'
 
-export default function Login({ loginUser, users }) {
+export default function Login({ setUser, users }) {
   return (
     <div>
-      <h1 className="text-center mt-5">Hi!</h1>
-      <h3 className="text-center mt-5 font-weight-light">Who's watching?</h3>
-      <Line />
-      <Cards>
+      <h1 className="has-text-centered title is-1">Hi!</h1>
+      <h3 className="has-text-centered title is-3">Who's watching?</h3>
+      <Cards className="columns is-centered">
         {users.map(user => {
-          const name = user.content_filtered
-            ? `${user.name} 👶`
-            : user.name
-
+          const name = user.content_filtered ? `${user.name} 👶` : user.name
           return (
-            <Card
-              key={user.id}
-              className="card"
-              onClick={() => loginUser(user)}
-            >
-              <div className="card-body">
-                <p className="card-text text-center font-weight-bold">
-                  {name}
-                </p>
+            <Card key={user.id} className="card" onClick={() => setUser(user)}>
+              <div className="card-content">
+                <p className="card-text is-centerered is-1">{name}</p>
               </div>
             </Card>
           )
@@ -32,24 +22,15 @@ export default function Login({ loginUser, users }) {
   )
 }
 
-const Line = styled.hr`
-  width: 25%;
-`
-
 const Cards = styled.div`
-  display: flex;
-  padding: 2em;
-  justify-content: center;
+  margin-top: 5em;
 `
 
 const Card = styled.div`
-  margin: 1em;
-  width: 10em;
-  box-shadow: 0px 2.5px 5px rgb(70, 70, 70);
-  transition: box-shadow 0.125s ease-in-out;
   cursor: pointer;
+  transition: background 0.0125s ease-in-out;
 
   &:hover {
-    box-shadow: 0px 3.5px 5px rgb(60, 130, 151);
+    background: rgba(0, 0, 0, 0.05);
   }
 `

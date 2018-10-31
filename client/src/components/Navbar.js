@@ -1,48 +1,45 @@
 import React from 'react'
-import styled from 'styled-components'
+import { PAGES } from '../constants'
 
-function setPages(setPage, pages, active) {
-  return pages.map(page => (
-    <li key={page} className={`nav-item ${page === active ? 'active' : ''}`}>
-      <Link className="nav-link" onClick={() => setPage(page)}>
-        {page}
-      </Link>
-    </li>
-  ))
-}
-
-export default function Navbar({ user, pages, active, setPage, logoutUser }) {
+export default function Navbar({ user, onLogout, page, setPage }) {
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav className="navbar">
       <div className="navbar-brand">
-        <span role="img" aria-label="clapper">
-          🎬 Nethub
-        </span>
+        <div className="navbar-item">
+          <span role="img" aria-label="clapper">
+            🎬
+          </span>
+        </div>
       </div>
-      <div className="collapse navbar-collapse">
-        {user ? (
-          <>
-            <ul className="navbar-nav mr-auto">
-              {setPages(setPage, pages, active)}
-            </ul>
-            <ul className="navbar-nav pull-right">
-              <li className="nav-item">
-                <Link onClick={logoutUser} className="nav-link">
-                  <span role="img" aria-label="bye">
-                    👋 Logout
-                  </span>
-                </Link>
-              </li>
-            </ul>
-          </>
-        ) : (
-          false
-        )}
-      </div>
+
+      {user ? (
+        <>
+          <div className="navbar-start">
+            {PAGES.map(pg => (
+              <button
+                key={pg}
+                className={`navbar-item button is-medium is-${
+                  pg === page ? 'light' : 'white'
+                }`}
+                onClick={() => setPage(pg)}
+              >
+                {pg}
+              </button>
+            ))}
+          </div>
+          <div className="navbar-end">
+            <div className="navbar-item">
+              <div className="buttons">
+                <button className="button is-light" onClick={onLogout}>
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        false
+      )}
     </nav>
   )
 }
-
-const Link = styled.div`
-  cursor: pointer;
-`

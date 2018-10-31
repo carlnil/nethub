@@ -1,10 +1,17 @@
-import React from 'react'
-// import styled from 'styled-components'
+import React, { useEffect } from 'react'
+import styled from 'styled-components'
+import Media from './Media'
+import { HISTORY } from '../constants'
 
-export default function Settings({ user }) {
+export default function History({ onHistory, history, user, page }) {
+  useEffect(() => onHistory({ id: user.id }), [page === HISTORY])
   return (
-    <div>
-      <span>{user.name}</span>
-    </div>
+    <Container>
+      <Media media={history} />
+    </Container>
   )
 }
+
+const Container = styled.div`
+  padding: 2em;
+`

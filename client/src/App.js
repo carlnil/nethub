@@ -1,5 +1,5 @@
-import { SERVER, CONNECTED, QUERY, HOME, HISTORY, PAGES } from './constants'
-import React, { useState, useEffect as onMount, createContext } from 'react'
+import React, { useState, useEffect } from 'react'
+import { SERVER, CONNECTED, HOME, HISTORY, SEARCH } from './constants'
 import io from 'socket.io-client'
 
 import Navbar from './components/Navbar'
@@ -8,77 +8,69 @@ import Home from './components/Home'
 import History from './components/History'
 import Settings from './components/Settings'
 
-export const Context = createContext()
-
 export default function App() {
   const socket = io(SERVER)
 
   const [user, setUser] = useState(null)
-  const [users, setUsers] = useState(null)
-  const [media, setMedia] = useState(null)
+  const [users, setUsers] = useState([])
+  const [media, setMedia] = useState([])
+  const [history, setHistory] = useState([])
   const [page, setPage] = useState(HOME)
 
-  onMount(() => {
+  useEffect(() => {
     socket.emit(CONNECTED, users => {
       setUsers(users)
     })
   }, [])
 
-  const ActivePage = () => {
+  function handleSearch(params) {
+    socket.emit(SEARCH, params, media => {
+      setMedia(media)
+    })
+  }
+
+  function getHistory(params) {
+    socket.emit(HISTORY, params, history => {
+      setHistory(history)
+    })
+  }
+
+  function handleLogout() {
+    setUser(null)
+    setMedia([])
+    setHistory([])
+  }
+
+  const selectPage = page => {
     if (user) {
-      if (page === HOME) return <Home />
-      else if (page === HISTORY) return <History />
-      else return <Settings />
-    } else return <Login />
+      if (page === HOME) {
+        return <Home media={media} onSearch={handleSearch} user={user} />
+      } else if (page === HISTORY) {
+        return (
+          <History
+            history={history}
+            onHistory={getHistory}
+            user={user}
+            page={page}
+          />
+        )
+      } else {
+        return <Settings />
+      }
+    } else {
+      return <Login users={users} setUser={setUser} />
+    }
   }
 
   return (
     <>
-      <Navbar />
-      <ActivePage />
+      <Navbar
+        user={user}
+        onLogout={handleLogout}
+        page={page}
+        setPage={setPage}
+      />
+      {selectPage(page)}
     </>
   )
 }
-
-//   handleSearch = (e, user, filters) => {
-//     e.preventDefault()
-//     const term = e.target[0].value
-
-//     if (term) {
-//       const socket = this.state.socket
-//       const vars = { term, ...filters, user }
-
-//       socket.emit(query, vars, payload => {
-//         this.setState({ ...payload })
-//       })
-//     }
-//   }
-
-//   render() {
-//     const { user, users, pages, active, media } = this.state
-//     const { loginUser, logoutUser, setPage, handleSearch } = this
-
-//     return (
-//       <div>
-//         <Navbar
-//           user={user}
-//           pages={pages}
-//           active={active}
-//           logoutUser={logoutUser}
-//           setPage={setPage}
-//         />
-//         {user.name ? (
-//           active === 'Home' ? (
-//             <Home user={user} onSearch={handleSearch} media={media} />
-//           ) : active === 'History' ? (
-//             <History user={user} />
-//           ) : (
-//             <Settings user={user} />
-//           )
-//         ) : (
-//           <Login loginUser={loginUser} users={users} />
-//         )}
-//       </div>
-//     )
-//   }
-// }

@@ -12,7 +12,7 @@
   "dependencies": {
     "express": "^4.16.4",
     "nodemon": "^1.18.4",
-    "pg-promise": "^8.5.1",
+    "pg": "^7.6.0",
     "socketio": "^1.0.0"
   }
 }

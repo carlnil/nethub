@@ -1,167 +1,168 @@
-import React, { Component } from 'react'
+import React, { useState } from 'react'
 import { Checkbox, CheckboxGroup } from 'react-checkbox-group'
 import styled from 'styled-components'
+import Media from './Media'
+import {
+  MOVIES,
+  SERIES,
+  NAME,
+  GENRE,
+  DIRECTOR,
+  ACTOR,
+  LANGUAGE,
+  INPUT,
+} from '../constants'
 
-const ratings = [5, 4, 3, 2, 1]
+export default function Home({ onSearch, media, user }) {
+  const [activeCategory, setActiveCategory] = useState(MOVIES)
+  const [activeFilters, setActiveFilters] = useState([NAME])
+  const [rating, setRating] = useState(0)
+  const [remainingEpisodes, setRemainingEpisodes] = useState(0)
 
-const radios = [
-  { val: 'movies', type: 'Movies' },
-  { val: 'series', type: 'TV shows' },
-]
-const checkboxes = [
-  'Name',
-  'Genre',
-  'Remaining episodes',
-  'Language',
-  'Actor',
-  'Director',
-]
+  function handleSubmit(e) {
+    e.preventDefault()
+    const term = e.target[INPUT].value
+    onSearch({
+      id: user.id,
+      term,
+      category: activeCategory,
+      filters: activeFilters,
+      rating,
+      remainingEpisodes,
+    })
+  }
 
-function mapMedia(media) {
-  return media.map(media => {
-    const title = media.is_mature ? `${media.title} 🔞` : media.title
-    const rating = `${media.rating}/5`
+  function handleCategorySelection({ target: { value: category } }) {
+    setActiveCategory(category)
+  }
 
-    return (
-      <div key={media.id}>
-        <h2>{title}</h2>
-        <h2>{media.series}</h2>
-        <h3>{media.title}</h3>
-        <h5>{media.season}</h5>
-        <h4>Rating: {rating}</h4>
-        <hr />
-        <br />
+  function handleDropdownChange({ target: { value } }, type) {
+    if (type === 'rating') setRating(value)
+    else if (type === 'remaining episodes') setRemainingEpisodes(value)
+  }
+
+  function handleFilterSelection(values) {
+    setActiveFilters(values)
+  }
+
+  return (
+    <Container className="columns">
+      <div className="column">
+        <h4 className="title is-4">Search for your favorite media ...</h4>
+        <Searchbar onSubmit={handleSubmit} />
+        <Line />
+        <CategorySelection onSelection={handleCategorySelection} />
+        <Line />
+        <DropdownSelection
+          onChange={e => handleDropdownChange(e, 'rating')}
+          selections={[1, 2, 3, 4, 5]}
+          category="rating"
+        />
+        <Line />
+        <FilterSelection
+          activeFilters={activeFilters}
+          onSelection={handleFilterSelection}
+        />
+        <Line />
+        <DropdownSelection
+          onChange={e => handleDropdownChange(e, 'remaining episodes')}
+          selections={[...Array(20)].map((j, index) => index + 1)}
+          category="remaining episodes"
+        />
       </div>
-    )
-  })
+      <div className="column">
+        <Media media={media} />
+      </div>
+    </Container>
+  )
 }
 
-export default class Home extends Component {
-  state = {
-    radio: 'movies',
-    rating: '',
-    categories: ['Name'],
-  }
-
-  handleRadioChange = ({ target: { value: radio } }) => {
-    this.setState({ radio })
-  }
-
-  handleRatingChange = ({ target: { value: rating } }) => {
-    this.setState({ rating })
-  }
-
-  handleCheckboxChange = categories => {
-    this.setState({ categories })
-  }
-
-  render() {
-    const { onSearch, media, user } = this.props
-    const { categories } = this.state
-    const { handleRadioChange, handleRatingChange, handleCheckboxChange } = this
-
-    return (
-      <Container>
-        <Form
-          className="form-group"
-          onSubmit={e => onSearch(e, user, this.state)}
-        >
-          <Searchbar
-            type="text"
-            className="form-control"
-            placeholder="Search for your favorite movies and shows!"
-          />
-          <Button className="btn btn-primary">
+const Searchbar = ({ onSubmit: handleSubmit }) => (
+  <>
+    <h5 className="title is-5">... by name</h5>
+    <form onSubmit={handleSubmit}>
+      <div className="field has-addons">
+        <div className="control">
+          <input className="input" name="input" />
+        </div>
+        <div className="control">
+          <button className="button is-info">
             <span role="img" aria-label="search">
               🔎
             </span>
-          </Button>
-        </Form>
-        <h5>Filter by</h5>
-        <Radios>
-          {radios.map(({ val, type }) => (
-            <label key={val}>
-              <div className="form-check">
-                <input
-                  name="content_type"
-                  className="form-check-input"
-                  type="radio"
-                  value={val}
-                  defaultChecked={val === 'movies'}
-                  onChange={handleRadioChange}
-                />
-                {type}
-              </div>
-            </label>
-          ))}
-        </Radios>
-        <div>
-          <label>Rating</label>
-          <br />
-          <Select className="form-control" onChange={handleRatingChange}>
-            <option defaultValue value={0}>
-              -
-            </option>
-            {ratings.map(rating => (
-              <option key={rating}>{rating}</option>
-            ))}
-          </Select>
+          </button>
         </div>
-        <Checkboxes
-          value={categories}
-          onChange={handleCheckboxChange}
-          checkboxDepth={2}
-        >
-          {checkboxes.map(category => (
-            <label key={category}>
-              <Checkbox value={category} /> {category}
-            </label>
-          ))}
-        </Checkboxes>
-        {mapMedia(media)}
-      </Container>
-    )
-  }
-}
+      </div>
+    </form>
+  </>
+)
+
+const CategorySelection = ({ onSelection: handleChange }) => (
+  <>
+    <h5 className="title is-5">... by category</h5>
+    {[MOVIES, SERIES].map(type => (
+      <label key={type}>
+        <div className="form-check">
+          <input
+            name="content_type"
+            className="form-check-input"
+            type="radio"
+            value={type}
+            defaultChecked={type === 'Movies'}
+            onChange={handleChange}
+            style={{ marginRight: '0.5em' }}
+          />
+          {type}
+        </div>
+      </label>
+    ))}
+  </>
+)
+
+const DropdownSelection = ({
+  onChange: handleChange,
+  selections,
+  category,
+}) => (
+  <>
+    <h5 className="title is-5">... by {category}</h5>
+    <div className="select">
+      <select name="rating" defaultValue="-" onChange={handleChange}>
+        <option defaultValue value={0}>
+          -
+        </option>
+        {selections.map(rating => (
+          <option key={rating} value={rating}>
+            {rating}
+          </option>
+        ))}
+      </select>
+    </div>
+  </>
+)
+
+const FilterSelection = ({ onSelection: handleChange, activeFilters }) => (
+  <>
+    <h5 className="title is-5">... by filters</h5>
+    <CheckboxGroup
+      value={activeFilters}
+      onChange={handleChange}
+      checkboxDepth={2}
+    >
+      {[NAME, GENRE, LANGUAGE, DIRECTOR, ACTOR].map(category => (
+        <label key={category} style={{ marginRight: '1em' }}>
+          <Checkbox value={category} style={{ marginRight: '0.5em' }} />{' '}
+          {category}
+        </label>
+      ))}
+    </CheckboxGroup>
+  </>
+)
+
+const Line = styled.hr`
+  width: 10vw;
+`
 
 const Container = styled.div`
-  padding: 2em;
-`
-
-const Form = styled.form`
-  display: flex;
-  width: 40%;
-  transition: filter 0.125s ease-in-out;
-`
-
-const Searchbar = styled.input`
-  font-size: 1.5rem;
-  padding: 1em 0 1em 0.5em;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-`
-
-const Button = styled.button`
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-`
-
-const Radios = styled.div`
-  display: flex;
-
-  * {
-    padding-right: 0.5em;
-  }
-`
-
-const Select = styled.select`
-  width: 5em;
-`
-
-const Checkboxes = styled(CheckboxGroup)`
-  padding-top: 1.5em;
-
-  * {
-    padding-right: 0.5em;
-  }
+  padding: 1em;
 `
