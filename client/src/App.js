@@ -43,6 +43,7 @@ export default function App() {
     setUser(null)
     setMedia([])
     setHistory([])
+    setPage(HOME)
   }
 
   function onLogin(user) {

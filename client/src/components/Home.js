@@ -25,6 +25,7 @@ export default function Home({ onSearch, media, languages, subtitles, user }) {
   const [activeSubtitles, setActiveSubtitles] = useState('')
   const [rating, setRating] = useState(0)
   const [remainingEpisodes, setRemainingEpisodes] = useState(0)
+  const [onlyNew, setOnlyNew] = useState(false)
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -39,6 +40,7 @@ export default function Home({ onSearch, media, languages, subtitles, user }) {
         remainingEpisodes,
         language: activeLanguage,
         subtitles: activeSubtitles,
+        onlyNew,
       })
     }
   }
@@ -71,6 +73,10 @@ export default function Home({ onSearch, media, languages, subtitles, user }) {
     setActiveFilters(values)
   }
 
+  function handleNew(e) {
+    setOnlyNew(!onlyNew)
+  }
+
   return (
     <Container className="columns">
       <div className="column">
@@ -78,6 +84,15 @@ export default function Home({ onSearch, media, languages, subtitles, user }) {
         <Searchbar onSubmit={handleSubmit} />
         <Line />
         <CategorySelection onSelection={handleCategorySelection} />
+        <Line />
+        <label>
+          <input
+            type="checkbox"
+            value={onlyNew}
+            onChange={handleNew}
+          />
+          <span style={{ marginLeft: '0.5em' }}>Show only new media</span>
+        </label>
         <Line />
         <FilterSelection
           activeFilters={activeFilters}

@@ -9,25 +9,25 @@ module.exports = {
                   FROM closed_captions cc
                   JOIN media m
                   ON cc.media_id = m.id`,
-  GET_HISTORY: `SELECT h.media_id id, m.title, r.rating, m.genre
+  GET_MOVIE_HISTORY: `SELECT h.media_id id, m.title, r.rating, m.genre
                 FROM history h
                 JOIN movies m 
                 on h.media_id = m.id
                 FULL OUTER JOIN ratings r
                 ON h.user_id = r.user_id 
                 AND h.media_id = r.media_id`,
-  GET_SERIES: `SELECT h.media_id id, e.title, s.title season, se.title series, r.rating, se.genre
-               FROM history h
-               JOIN episodes e
-               ON h.media_id = e.id
-               JOIN seasons s
-               ON e.season_number = s.season_number
-               AND e.series_id = s.series_id
-               JOIN series se
-               ON s.series_id = se.id
-               FULL OUTER JOIN ratings r
-               ON h.user_id = r.user_id 
-               AND h.media_id = r.media_id`,
+  GET_SERIES_HISTORY: `SELECT h.media_id id, e.title, s.title season, se.title series, r.rating, se.genre
+                       FROM history h
+                       JOIN episodes e
+                       ON h.media_id = e.id
+                       JOIN seasons s
+                       ON e.season_number = s.season_number
+                       AND e.series_id = s.series_id
+                       JOIN series se
+                       ON s.series_id = se.id
+                       FULL OUTER JOIN ratings r
+                       ON h.user_id = r.user_id 
+                       AND h.media_id = r.media_id`,
   GET_HISTORY_COUNT: `SELECT COUNT(*)
                       FROM history h
                       JOIN episodes e

@@ -7,7 +7,7 @@ export default function History({ onHistory, history, user, page }) {
   useEffect(() => onHistory({ id: user.id }), [page === HISTORY])
   return (
     <Container>
-      <Media media={history} />
+      <Media media={history} filter={false} />
     </Container>
   )
 }

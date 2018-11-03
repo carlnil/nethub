@@ -18,8 +18,8 @@ const {
   GET_USERS,
   GET_LANGUAGES,
   GET_SUBTITLES,
-  GET_HISTORY,
-  GET_SERIES,
+  GET_MOVIE_HISTORY,
+  GET_SERIES_HISTORY,
   GET_HISTORY_COUNT,
   GET_DIRECTORS,
   GET_ACTORS,
@@ -69,12 +69,12 @@ function getMedia(type, params) {
 
 async function getHistory(params) {
   const movies = await sql.query(
-    `${GET_HISTORY}
+    `${GET_MOVIE_HISTORY}
      WHERE h.user_id = ${params.id}`
   )
 
   const series = await sql.query(
-    `${GET_SERIES}
+    `${GET_SERIES_HISTORY}
      WHERE h.user_id = ${params.id}`
   )
 
@@ -174,36 +174,28 @@ function getSearch(params) {
     )
 
     return sql.query(
-      `${
-        params.category === MOVIES
-          ? getMovies(params, statement)
-          : getSeries(params, statement)
-      }
+      `${params.category === MOVIES ? getMovies(params) : getSeries(params)}
       ${params.filters.includes(DIRECTOR) ? GET_DIRECTORS : ''}
       ${params.filters.includes(ACTOR) ? GET_ACTORS : ''}
       ${params.language ? GET_AUDIO_LANGUAGES : ''}
       ${params.subtitles ? GET_CAPTIONS : ''}
       ${getRatings(params.id, params.category)}
-      WHERE ${statement} 
-      AND m.id NOT IN (
-        SELECT h.media_id id
-        FROM history h
-        WHERE h.user_id = ${params.id}
-      )`
+      ${
+        params.onlyNew
+          ? `WHERE ${statement} 
+             AND m.id NOT IN (
+              SELECT h.media_id id
+              FROM history h
+              WHERE h.user_id = ${params.id}
+            )`
+          : ''
+      }
+      WHERE ${statement}`
     )
   } else {
     return sql.query(
-      `${
-        params.category === MOVIES
-          ? getMovies(params)
-          : getSeries(params)
-       }
-       ${getRatings(params.id, params.category)}
-       WHERE m.id NOT IN (
-        SELECT h.media_id id
-        FROM history h
-        WHERE h.user_id = ${params.id}
-      )`
+      `${params.category === MOVIES ? getMovies(params) : getSeries(params)}
+       ${getRatings(params.id, params.category)}`
     )
   }
 }
