@@ -46,14 +46,14 @@ CREATE TABLE episodes (
 
 CREATE TABLE closed_captions (
   media_id INTEGER REFERENCES media(id),
-  cc_language VARCHAR(16),
-  PRIMARY KEY (media_id, cc_language)
+  language VARCHAR(16),
+  PRIMARY KEY (media_id, language)
 );
 
 CREATE TABLE audio_languages (
   media_id INTEGER REFERENCES media(id),
-  audio_language VARCHAR(16),
-  PRIMARY KEY (media_id, audio_language)
+  language VARCHAR(16),
+  PRIMARY KEY (media_id, language)
 );
 
 CREATE TABLE directors (
@@ -63,10 +63,10 @@ CREATE TABLE directors (
 );
 
 CREATE TABLE actors (
-  fullname VARCHAR(255),
+  name VARCHAR(255),
   acting_as VARCHAR(255),
   media_id INTEGER REFERENCES media(id),
-  PRIMARY KEY (fullname, media_id)
+  PRIMARY KEY (name, media_id)
 );
 
 CREATE TABLE users (
@@ -105,8 +105,8 @@ CREATE TABLE locale (
   cc_language VARCHAR(16),
   audio_language VARCHAR(16),
   PRIMARY KEY (user_id, media_id),
-  FOREIGN KEY (media_id, cc_language) REFERENCES closed_captions(media_id, cc_language),
-  FOREIGN KEY (media_id, audio_language) REFERENCES audio_languages(media_id, audio_language)
+  FOREIGN KEY (media_id, cc_language) REFERENCES closed_captions(media_id, language),
+  FOREIGN KEY (media_id, audio_language) REFERENCES audio_languages(media_id, language)
 );
 
 CREATE TABLE completed_seasons (

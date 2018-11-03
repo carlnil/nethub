@@ -11,25 +11,49 @@ import {
   ACTOR,
   LANGUAGE,
   INPUT,
+  RATING,
+  REMAINING_EPISODES,
+  SUBTITLES,
+  MOVIE,
+  EPISODE,
 } from '../constants'
 
-export default function Home({ onSearch, media, user }) {
+export default function Home({ onSearch, media, languages, subtitles, user }) {
   const [activeCategory, setActiveCategory] = useState(MOVIES)
   const [activeFilters, setActiveFilters] = useState([NAME])
+  const [activeLanguage, setActiveLanguage] = useState('')
+  const [activeSubtitles, setActiveSubtitles] = useState('')
   const [rating, setRating] = useState(0)
   const [remainingEpisodes, setRemainingEpisodes] = useState(0)
 
   function handleSubmit(e) {
     e.preventDefault()
     const term = e.target[INPUT].value
-    onSearch({
-      id: user.id,
-      term,
-      category: activeCategory,
-      filters: activeFilters,
-      rating,
-      remainingEpisodes,
-    })
+    if (term) {
+      onSearch({
+        id: user.id,
+        term,
+        category: activeCategory,
+        filters: activeFilters,
+        rating,
+        remainingEpisodes,
+        language: activeLanguage,
+        subtitles: activeSubtitles,
+      })
+    }
+  }
+
+  function getLanguages(languages) {
+    return languages
+      .map(
+        ({ category, language }) =>
+          category === EPISODE && activeCategory === SERIES
+            ? language
+            : category === MOVIE && activeCategory === MOVIES
+              ? language
+              : false
+      )
+      .filter(language => language)
   }
 
   function handleCategorySelection({ target: { value: category } }) {
@@ -37,8 +61,10 @@ export default function Home({ onSearch, media, user }) {
   }
 
   function handleDropdownChange({ target: { value } }, type) {
-    if (type === 'rating') setRating(value)
-    else if (type === 'remaining episodes') setRemainingEpisodes(value)
+    if (type === RATING) setRating(value)
+    else if (type === REMAINING_EPISODES) setRemainingEpisodes(value)
+    else if (type === LANGUAGE) setActiveLanguage(value)
+    else if (type === SUBTITLES) setActiveSubtitles(value)
   }
 
   function handleFilterSelection(values) {
@@ -53,25 +79,45 @@ export default function Home({ onSearch, media, user }) {
         <Line />
         <CategorySelection onSelection={handleCategorySelection} />
         <Line />
-        <DropdownSelection
-          onChange={e => handleDropdownChange(e, 'rating')}
-          selections={[1, 2, 3, 4, 5]}
-          category="rating"
-        />
-        <Line />
         <FilterSelection
           activeFilters={activeFilters}
           onSelection={handleFilterSelection}
         />
         <Line />
         <DropdownSelection
-          onChange={e => handleDropdownChange(e, 'remaining episodes')}
-          selections={[...Array(20)].map((j, index) => index + 1)}
-          category="remaining episodes"
+          onChange={e => handleDropdownChange(e, RATING)}
+          selections={[1, 2, 3, 4, 5]}
+          category="rating"
+          defaultValue={0}
         />
+        <Line />
+        <DropdownSelection
+          onChange={e => handleDropdownChange(e, LANGUAGE)}
+          selections={getLanguages(languages)}
+          category="language"
+          defaultValue={''}
+        />
+        <Line />
+        <DropdownSelection
+          onChange={e => handleDropdownChange(e, SUBTITLES)}
+          selections={getLanguages(subtitles)}
+          category="subtitles"
+          defaultValue={''}
+        />
+        <Line />
+        {activeCategory === SERIES ? (
+          <DropdownSelection
+            onChange={e => handleDropdownChange(e, REMAINING_EPISODES)}
+            selections={[...Array(20)].map((i, j) => j + 1)}
+            category="remaining episodes"
+            defaultValue={0}
+          />
+        ) : (
+          false
+        )}
       </div>
       <div className="column">
-        <Media media={media} />
+        <Media media={media} category={activeCategory} />
       </div>
     </Container>
   )
@@ -123,12 +169,13 @@ const DropdownSelection = ({
   onChange: handleChange,
   selections,
   category,
+  defaultValue,
 }) => (
   <>
     <h5 className="title is-5">... by {category}</h5>
     <div className="select">
       <select name="rating" defaultValue="-" onChange={handleChange}>
-        <option defaultValue value={0}>
+        <option defaultValue value={defaultValue}>
           -
         </option>
         {selections.map(rating => (
@@ -149,7 +196,7 @@ const FilterSelection = ({ onSelection: handleChange, activeFilters }) => (
       onChange={handleChange}
       checkboxDepth={2}
     >
-      {[NAME, GENRE, LANGUAGE, DIRECTOR, ACTOR].map(category => (
+      {[NAME, GENRE, DIRECTOR, ACTOR].map(category => (
         <label key={category} style={{ marginRight: '1em' }}>
           <Checkbox value={category} style={{ marginRight: '0.5em' }} />{' '}
           {category}
