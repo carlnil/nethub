@@ -1,28 +1,28 @@
 module.exports = {
   GET_USERS: `SELECT * 
               FROM users`,
-  GET_LANGUAGES: `SELECT DISTINCT al.language, m.category
+  GET_LANGUAGES: `SELECT al.language, m.category, al.media_id
                   FROM audio_languages al
                   JOIN media m
                   ON al.media_id = m.id`,
-  GET_SUBTITLES: `SELECT DISTINCT cc.language, m.category
+  GET_SUBTITLES: `SELECT cc.language, m.category, cc.media_id
                   FROM closed_captions cc
                   JOIN media m
                   ON cc.media_id = m.id`,
-  GET_MOVIE_HISTORY: `SELECT h.media_id id, m.title, r.rating, m.genre
-                FROM history h
-                JOIN movies m 
-                on h.media_id = m.id
-                FULL OUTER JOIN ratings r
-                ON h.user_id = r.user_id 
-                AND h.media_id = r.media_id`,
-  GET_SERIES_HISTORY: `SELECT h.media_id id, e.title, s.title season, se.title series, r.rating, se.genre
+  GET_MOVIE_HISTORY: `SELECT h.media_id id, m.title, r.rating, m.genre, h.date
+                      FROM history h
+                      JOIN movies m 
+                      on h.media_id = m.id
+                      FULL OUTER JOIN ratings r
+                      ON h.user_id = r.user_id 
+                      AND h.media_id = r.media_id`,
+  GET_SERIES_HISTORY: `SELECT h.media_id id, m.title, s.title season, se.title series, r.rating, se.genre, h.date
                        FROM history h
-                       JOIN episodes e
-                       ON h.media_id = e.id
+                       JOIN episodes m
+                       ON h.media_id = m.id
                        JOIN seasons s
-                       ON e.season_number = s.season_number
-                       AND e.series_id = s.series_id
+                       ON m.season_number = s.season_number
+                       AND m.series_id = s.series_id
                        JOIN series se
                        ON s.series_id = se.id
                        FULL OUTER JOIN ratings r

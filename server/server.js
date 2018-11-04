@@ -10,6 +10,7 @@ const {
   MOVIES,
   LOGIN,
   SERIES,
+  UPDATE,
 } = require('./constants')
 const app = require('express')()
 const server = require('http').Server(app)
@@ -38,6 +39,10 @@ io.on(CONNECTION, socket => {
   socket.on(HISTORY, async (params, callback) => {
     const media = await query(HISTORY, params)
     callback(media)
+  })
+
+  socket.on(UPDATE, async params => {
+    query(UPDATE, params)
   })
 })
 

@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react'
-import { SERVER, CONNECTED, HOME, HISTORY, SEARCH, LOGIN } from './constants'
+import {
+  SERVER,
+  CONNECTED,
+  HOME,
+  HISTORY,
+  SEARCH,
+  LOGIN,
+  UPDATE,
+  RATING,
+  SUBSCRIPTION,
+  LANGUAGE,
+  SUBTITLES,
+} from './constants'
 import io from 'socket.io-client'
 
 import Navbar from './components/Navbar'
@@ -39,6 +51,12 @@ export default function App() {
     })
   }
 
+  function getMedia(params) {
+    socket.emit(LOGIN, params, (movies, series) => {
+      setMedia([...movies, ...series])
+    })
+  }
+
   function handleLogout() {
     setUser(null)
     setMedia([])
@@ -48,10 +66,70 @@ export default function App() {
 
   function onLogin(user) {
     setUser(user)
+    getMedia({ id: user.id })
+    getHistory({ id: user.id })
+  }
 
-    socket.emit(LOGIN, { id: user.id }, (movies, series) => {
-      setMedia([...movies, ...series])
+  function handleHistoryChange(media, seen) {
+    socket.emit(UPDATE, {
+      media_id: media.id,
+      user_id: user.id,
+      seen,
+      type: HISTORY,
     })
+
+    updateMedia()
+  }
+
+  function handleRatingChange(media, { target: { value } }) {
+    socket.emit(UPDATE, {
+      media_id: media.id,
+      user_id: user.id,
+      rating: value,
+      type: RATING,
+    })
+    
+    updateMedia()
+  }
+
+  function handleSubscriptionChange(media) {
+    socket.emit(UPDATE, {
+      series_id: media.series_id,
+      subscribed: media.subscribed,
+      user_id: user.id,
+      type: SUBSCRIPTION,
+    })
+
+    updateMedia()
+  }
+
+  function handleLanguageChange(media, { target: { value } }) {
+    socket.emit(UPDATE, {
+      media_id: media.id,
+      user_id: user.id,
+      language: value,
+      type: LANGUAGE,
+    })
+
+    updateMedia()
+  }
+
+  function handleSubtitlesChange(media, { target: { value } }) {
+    socket.emit(UPDATE, {
+      media_id: media.id,
+      user_id: user.id,
+      language: value,
+      type: SUBTITLES,
+    })
+
+    updateMedia()
+  }
+
+  function updateMedia() {
+    setTimeout(() => {
+      getMedia({ id: user.id })
+      getHistory({ id: user.id })
+    }, 100)
   }
 
   const selectPage = page => {
@@ -60,10 +138,16 @@ export default function App() {
         return (
           <Home
             media={media}
+            history={history}
             onSearch={handleSearch}
             user={user}
             languages={languages}
             subtitles={subtitles}
+            onHistoryChange={handleHistoryChange}
+            onRatingChange={handleRatingChange}
+            onLanguageChange={handleLanguageChange}
+            onSubtitlesChange={handleSubtitlesChange}
+            onSubscriptionChange={handleSubscriptionChange}
           />
         )
       } else if (page === HISTORY) {
@@ -73,6 +157,13 @@ export default function App() {
             onHistory={getHistory}
             user={user}
             page={page}
+            onHistoryChange={handleHistoryChange}
+            onRatingChange={handleRatingChange}
+            onLanguageChange={handleLanguageChange}
+            onSubtitlesChange={handleSubtitlesChange}
+            onSubscriptionChange={handleSubscriptionChange}
+            languages={languages}
+            subtitles={subtitles}
           />
         )
       } else {

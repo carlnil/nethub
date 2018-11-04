@@ -17,12 +17,15 @@ module.exports = {
   SERIES: 'Series',
   RATING: 'Rating',
   REMAINING_EPISODES: 'Remaining Episodes',
-  SUBTITLES: 'subtitles',
+  SUBTITLES: 'Subtitles',
   NAME: 'Name',
   GENRE: 'Genre',
   DIRECTOR: 'Director',
   ACTOR: 'Actor',
   LANGUAGE: 'Language',
   INPUT: 'input',
-  LOGIN: 'login'
+  LOGIN: 'login',
+  UPDATE: 'update',
+  SUBSCRIPTION: 'subscription',
+  INSERT: 'insert',
 }

@@ -13,6 +13,11 @@ const {
   USERS,
   LANGUAGES,
   SUBTITLES,
+  UPDATE,
+  SUBSCRIPTION,
+  RATING,
+  LANGUAGE,
+  INSERT,
 } = require('./constants')
 const {
   GET_USERS,
@@ -20,7 +25,6 @@ const {
   GET_SUBTITLES,
   GET_MOVIE_HISTORY,
   GET_SERIES_HISTORY,
-  GET_HISTORY_COUNT,
   GET_DIRECTORS,
   GET_ACTORS,
   GET_AUDIO_LANGUAGES,
@@ -35,48 +39,52 @@ const sql = require('pg-promise')()({
 module.exports = (type, params) => {
   switch (type) {
     case USERS:
-      return getUsers()
+      return sql.query(GET_USERS)
     case LANGUAGES:
-      return getLanguages()
+      return sql.query(GET_LANGUAGES)
     case SUBTITLES:
-      return getSubtitles()
+      return sql.query(GET_SUBTITLES)
     case MOVIES:
-      return getMedia(SEARCH, { category: MOVIES, id: params.id })
+      return getMedia(SEARCH, { category: MOVIES, id: params.id, first: true })
     case SERIES:
-      return getMedia(SEARCH, { category: SERIES, id: params.id })
+      return getMedia(SEARCH, { category: SERIES, id: params.id, first: true })
     case SEARCH:
       return getMedia(SEARCH, params)
     case HISTORY:
       return getMedia(HISTORY, params)
+    case UPDATE:
+      updateDatabase(params)
+      break
+    case INSERT:
+      insertIntoDatabase(params)
+      break
   }
-}
-
-function getUsers() {
-  return sql.query(GET_USERS)
-}
-
-function getLanguages() {
-  return sql.query(GET_LANGUAGES)
-}
-
-function getSubtitles() {
-  return sql.query(GET_SUBTITLES)
 }
 
 function getMedia(type, params) {
   return type === SEARCH ? getSearch(params) : getHistory(params)
 }
 
-async function getHistory(params) {
-  const movies = await sql.query(
-    `${GET_MOVIE_HISTORY}
-     WHERE h.user_id = ${params.id}`
-  )
+async function getHistory({ id }) {
+  const baseQuery = {
+    locale: `SELECT * FROM locale l WHERE l.user_id = ${id}`,
+    personnel: {
+      actors: 'SELECT * FROM actors',
+      directors: 'SELECT * FROM directors',
+    },
+  }
 
-  const series = await sql.query(
-    `${GET_SERIES_HISTORY}
-     WHERE h.user_id = ${params.id}`
-  )
+  const movies = await searchDatabase({
+    ...baseQuery,
+    media: `${GET_MOVIE_HISTORY} WHERE h.user_id = ${id}`,
+  })
+  const series = await searchDatabase({
+    ...baseQuery,
+    subscriptions: `SELECT * 
+                    FROM subscriptions s 
+                    WHERE s.user_id = ${id}`,
+    media: `${GET_SERIES_HISTORY} WHERE h.user_id = ${id}`,
+  })
 
   return [...movies, ...series]
 }
@@ -119,88 +127,108 @@ function withSubtitles(language) {
   return language ? { query: `cc.language = '${language}'`, op: 'AND' } : ''
 }
 
-function withEpisodes(remainingEpisodes, id, term, filters) {
-  if (remainingEpisodes) {
-    const conds = filterBy(filters, SERIES, term)
-    const last = conds[conds.length - 1].query
+function getConds({ filters, category, term, rating, language, subtitles }) {
+  const filteredBy = filterBy(filters, category, term)
+  const ratingOf = ratingFrom(rating)
+  const languageOf = withLanguage(language)
+  const subtitlesOf = withSubtitles(subtitles)
 
-    const statement = conds.reduce(
-      (statement, { query, op }) =>
-        query === last
-          ? `${statement} ${query}`
-          : `${statement} ${query} ${op}`,
-      ''
-    )
+  return [ratingOf, languageOf, subtitlesOf, ...filteredBy].filter(
+    ({ query }) => query
+  )
+}
 
-    return {
-      query: `${remainingEpisodes} = (${GET_HISTORY_COUNT}
-              WHERE h.user_id = ${id}
-              AND (${statement}))`,
-      op: 'AND',
-    }
-  } else {
-    return false
-  }
+function getWhereStatement(conds) {
+  const last = conds[conds.length - 1].query
+
+  return conds.reduce((statement, { query, op }) => {
+    return query === last
+      ? `${statement} ${query}`
+      : `${statement} ${query} ${op}`
+  }, '')
 }
 
 function getSearch(params) {
-  const filteredBy = filterBy(params.filters, params.category, params.term)
-  const ratingOf = ratingFrom(params.rating)
-  const languageOf = withLanguage(params.language)
-  const subtitlesOf = withSubtitles(params.subtitles)
-  const seenEpisodes = withEpisodes(
-    params.remainingEpisodes,
-    params.id,
-    params.term,
-    params.filters
-  )
+  const { category, filters, language, subtitles, id, newMedia } = params
 
-  const conds = [
-    seenEpisodes,
-    ratingOf,
-    languageOf,
-    subtitlesOf,
-    ...filteredBy,
-  ].filter(({ query }) => query)
+  const conds = getConds(params)
+  const media = category === MOVIES ? getMovies(params) : getSeries(params)
+  const ratings = getRatings(id, category)
 
-  if (conds.length) {
-    const last = conds[conds.length - 1].query
-    const statement = conds.reduce(
-      (statement, { query, op }) =>
-        query === last
-          ? `${statement} ${query}`
-          : `${statement} ${query} ${op}`,
-      ''
-    )
-
-    return sql.query(
-      `${params.category === MOVIES ? getMovies(params) : getSeries(params)}
-      ${params.filters.includes(DIRECTOR) ? GET_DIRECTORS : ''}
-      ${params.filters.includes(ACTOR) ? GET_ACTORS : ''}
-      ${params.language ? GET_AUDIO_LANGUAGES : ''}
-      ${params.subtitles ? GET_CAPTIONS : ''}
-      ${getRatings(params.id, params.category)}
-      ${
-        params.onlyNew
-          ? `WHERE ${statement} 
-             AND m.id NOT IN (
-              SELECT h.media_id id
-              FROM history h
-              WHERE h.user_id = ${params.id}
-            )`
-          : ''
-      }
-      WHERE ${statement}`
-    )
-  } else {
-    return sql.query(
-      `${params.category === MOVIES ? getMovies(params) : getSeries(params)}
-       ${getRatings(params.id, params.category)}`
-    )
+  const baseQuery = {
+    locale: `SELECT * FROM locale l WHERE l.user_id = ${id}`,
+    personnel: {
+      actors: 'SELECT * FROM actors',
+      directors: 'SELECT * FROM directors',
+    },
+    subscriptions: `SELECT * FROM subscriptions s WHERE s.user_id = ${id}`,
   }
+
+  if (!conds.length) {
+    const query = {
+      ...baseQuery,
+      media: `${media} ${ratings}`,
+    }
+
+    return searchDatabase(query)
+  }
+
+  const directors = filters.includes(DIRECTOR) ? GET_DIRECTORS : ''
+  const actors = filters.includes(ACTOR) ? GET_ACTORS : ''
+  const languages = language ? GET_AUDIO_LANGUAGES : ''
+  const captions = subtitles ? GET_CAPTIONS : ''
+  const statement = getWhereStatement(conds)
+  const unwatched = `AND m.id NOT IN (
+                     SELECT h.media_id id
+                     FROM history h
+                     WHERE h.user_id = ${id})`
+
+  const query = {
+    ...baseQuery,
+    media: `${media} ${directors} ${actors} ${languages} ${captions} ${ratings} 
+            WHERE ${statement} ${newMedia ? unwatched : ''}`,
+  }
+
+  return searchDatabase(query)
 }
 
-const getRatings = (userId, category) => {
+async function searchDatabase(query) {
+  const media = await sql.query(query.media)
+  const actors = await sql.query(query.personnel.actors)
+  const directors = await sql.query(query.personnel.directors)
+  const locale = await sql.query(query.locale)
+  const subscriptions = query.subscriptions
+    ? await sql.query(query.subscriptions)
+    : []
+
+  return media.map(media => {
+    // prettier-ignore
+    const actorsByMedia = actors
+      .filter(({ media_id }) => media_id === media.id)
+
+    // prettier-ignore
+    const directorsByMedia = directors
+      .filter(({ media_id }) => media_id === media.id)
+
+    // prettier-ignore
+    const localeByMedia = locale
+        .find(({ media_id }) => media_id === media.id)
+
+    // prettier-ignore
+    const subscribed = subscriptions
+      .some(({ series_id }) => series_id === media.series_id)
+
+    return {
+      ...media,
+      locale: localeByMedia || false,
+      actors: actorsByMedia,
+      directors: directorsByMedia,
+      subscribed,
+    }
+  })
+}
+
+function getRatings(userId, category) {
   const media = category === MOVIES ? 'movies' : 'episodes'
 
   return `
@@ -221,7 +249,7 @@ function getMovies({ language, subtitles }) {
   return `
     SELECT ${
       language || subtitles ? 'DISTINCT' : ''
-    } m.id, mo.title, mo.genre, r.rating, m.category
+    } m.id, mo.title, mo.genre, r.rating, m.category, mo.release_year
     FROM media m
     JOIN movies mo
     ON m.id = mo.id`
@@ -231,7 +259,7 @@ function getSeries({ language, subtitles }) {
   return `
   SELECT ${
     language || subtitles ? 'DISTINCT' : ''
-  } m.id, e.title, se.title series, s.title season, se.genre, r.rating, m.category
+  } m.id, e.title, se.title series, s.title season, se.genre, r.rating, m.category, e.release_year, se.id series_id
   FROM media m
   JOIN episodes e
   ON m.id = e.id
@@ -241,3 +269,88 @@ function getSeries({ language, subtitles }) {
   JOIN series se
   ON s.series_id = se.id`
 }
+
+function updateDatabase(params) {
+  switch (params.type) {
+    case HISTORY:
+      updateHistory(params)
+      break
+    case RATING:
+      updateRatings(params)
+      break
+    case SUBSCRIPTION:
+      updateSubscriptions(params)
+      break
+    case LANGUAGE:
+      updateLanguages(params)
+      break
+    case SUBTITLES:
+      updateSubtitles(params)
+      break
+  }
+}
+
+function updateHistory({ media_id, user_id, seen }) {
+  const query = seen
+    ? `DELETE 
+       FROM history h
+       WHERE h.media_id = ${media_id} 
+       AND h.user_id = ${user_id};
+       DELETE
+       FROM ratings r
+       WHERE r.media_id = ${media_id} 
+       AND r.user_id = ${user_id};
+      `
+    : `INSERT INTO
+       history VALUES
+       (${user_id}, ${media_id}, '${new Date()
+        .toISOString()
+        .substring(0, 10)}')   
+      `
+
+  sql.query(query)
+}
+
+function updateRatings({ user_id, media_id, rating }) {
+  const query = `INSERT INTO ratings
+                 VALUES (${user_id}, ${media_id}, ${rating})
+                 ON CONFLICT (user_id, media_id)
+                 DO UPDATE
+                 SET rating = ${rating}`
+
+  sql.query(query)
+}
+
+function updateSubscriptions({ user_id, series_id, subscribed }) {
+  const query = subscribed
+    ? `DELETE 
+       FROM subscriptions s
+       WHERE s.user_id = ${user_id} 
+       AND s.series_id = ${series_id}`
+    : `INSERT INTO subscriptions
+       VALUES (${user_id}, ${series_id})`
+
+  sql.query(query)
+}
+
+function updateLanguages({ user_id, media_id, language }) {
+  const query = `INSERT INTO locale
+                 VALUES (${user_id}, ${media_id}, NULL, '${language}')
+                 ON CONFLICT (user_id, media_id)
+                 DO UPDATE
+                 SET audio_language = '${language}'`
+
+  sql.query(query)
+}
+
+function updateSubtitles({ user_id, media_id, language }) {
+  const query = `INSERT INTO locale
+                 VALUES (${user_id}, ${media_id}, '${language}', NULL)
+                 ON CONFLICT (user_id, media_id)
+                 DO UPDATE
+                 SET cc_language = '${language}'`
+
+  sql.query(query)
+}
+
+function insertIntoDatabase(params) {}
