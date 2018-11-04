@@ -11,6 +11,8 @@ import {
   SUBSCRIPTION,
   LANGUAGE,
   SUBTITLES,
+  MATURE_FILTER,
+  CONTENT_FILTER,
 } from './constants'
 import io from 'socket.io-client'
 
@@ -29,15 +31,20 @@ export default function App() {
   const [history, setHistory] = useState([])
   const [languages, setLanguages] = useState([])
   const [subtitles, setSubtitles] = useState([])
+  const [metadata, setMetadata] = useState(null)
   const [page, setPage] = useState(HOME)
 
-  useEffect(() => {
-    socket.emit(CONNECTED, (users, languages, subtitles) => {
-      setUsers(users)
-      setLanguages(languages)
-      setSubtitles(subtitles)
-    })
-  }, [])
+  useEffect(
+    () => {
+      socket.emit(CONNECTED, (users, languages, subtitles, metadata) => {
+        setUsers(users)
+        setLanguages(languages)
+        setSubtitles(subtitles)
+        setMetadata(metadata)
+      })
+    },
+    [user]
+  )
 
   function handleSearch(params) {
     socket.emit(SEARCH, params, media => {
@@ -65,9 +72,15 @@ export default function App() {
   }
 
   function onLogin(user) {
-    setUser(user)
-    getMedia({ id: user.id })
-    getHistory({ id: user.id })
+    getMedia(user)
+    getHistory(user)
+
+    setUser({
+      ...user,
+      children: users.filter(({ id }) =>
+        user.children.some(({ id: child_id }) => child_id === id)
+      ),
+    })
   }
 
   function handleHistoryChange(media, seen) {
@@ -88,7 +101,7 @@ export default function App() {
       rating: value,
       type: RATING,
     })
-    
+
     updateMedia()
   }
 
@@ -125,10 +138,57 @@ export default function App() {
     updateMedia()
   }
 
+  function handleFilterChange(filteredUser = user) {
+    if (filteredUser.id === user.id) {
+      setUser({
+        ...filteredUser,
+        content_filtered: !filteredUser.content_filtered,
+      })
+    }
+
+    socket.emit(UPDATE, {
+      user_id: filteredUser.id,
+      type: MATURE_FILTER,
+    })
+  }
+
+  function handleFilterSelection(filteredUser, category, val) {
+    if (filteredUser.id === user.id) {
+      setUser({
+        ...user,
+        contentFilters: {
+          ...user.contentFilters,
+          [category]: val,
+        },
+      })
+    } else {
+      setUser({
+        ...user,
+        children: user.children.map(child => {
+          if (child.id !== filteredUser.id) return child
+          return {
+            ...child,
+            contentFilters: {
+              ...child.contentFilters,
+              [category]: val,
+            },
+          }
+        }),
+      })
+    }
+
+    socket.emit(UPDATE, {
+      user_id: filteredUser.id,
+      category,
+      val,
+      type: CONTENT_FILTER,
+    })
+  }
+
   function updateMedia() {
     setTimeout(() => {
-      getMedia({ id: user.id })
-      getHistory({ id: user.id })
+      getMedia(user)
+      getHistory(user)
     }, 100)
   }
 
@@ -167,7 +227,14 @@ export default function App() {
           />
         )
       } else {
-        return <Settings />
+        return (
+          <Settings
+            user={user}
+            handleFilterChange={handleFilterChange}
+            handleFilterSelection={handleFilterSelection}
+            metadata={metadata}
+          />
+        )
       }
     } else {
       return <Login users={users} handleLogin={onLogin} />

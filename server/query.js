@@ -17,7 +17,14 @@ const {
   SUBSCRIPTION,
   RATING,
   LANGUAGE,
-  INSERT,
+  CONTENT_FILTER,
+  METADATA,
+  EPISODES,
+  SEASONS,
+  ACTORS,
+  DIRECTORS,
+  GENRES,
+  MATURE_FILTER,
 } = require('./constants')
 const {
   GET_USERS,
@@ -29,6 +36,8 @@ const {
   GET_ACTORS,
   GET_AUDIO_LANGUAGES,
   GET_CAPTIONS,
+  GET_FILTERS,
+  GET_CHILDREN,
 } = require('./queries')
 const sql = require('pg-promise')()({
   database: DATABASE,
@@ -39,15 +48,17 @@ const sql = require('pg-promise')()({
 module.exports = (type, params) => {
   switch (type) {
     case USERS:
-      return sql.query(GET_USERS)
+      return getUsers()
+    case METADATA:
+      return getMetadata()
     case LANGUAGES:
       return sql.query(GET_LANGUAGES)
     case SUBTITLES:
       return sql.query(GET_SUBTITLES)
     case MOVIES:
-      return getMedia(SEARCH, { category: MOVIES, id: params.id, first: true })
+      return getMedia(SEARCH, { ...params, category: MOVIES, first: true })
     case SERIES:
-      return getMedia(SEARCH, { category: SERIES, id: params.id, first: true })
+      return getMedia(SEARCH, { ...params, category: SERIES, first: true })
     case SEARCH:
       return getMedia(SEARCH, params)
     case HISTORY:
@@ -55,10 +66,89 @@ module.exports = (type, params) => {
     case UPDATE:
       updateDatabase(params)
       break
-    case INSERT:
-      insertIntoDatabase(params)
+    case MATURE_FILTER:
+      updateDatabase(params)
+      break
+    case CONTENT_FILTER:
+      updateDatabase(params)
       break
   }
+}
+
+async function getUsers() {
+  const users = await sql.query(GET_USERS)
+  const children = await sql.query(GET_CHILDREN)
+  const filters = await sql.query(GET_FILTERS)
+  const acc = {
+    movies: [],
+    series: [],
+    seasons: [],
+    episodes: [],
+    actors: [],
+    directors: [],
+    genres: [],
+  }
+
+  // prettier-ignore
+  return users.map(user => ({
+    ...user,
+    contentFilters: filters
+      .filter(({ user_id }) => user_id === user.id)
+      .reduce((filters, { category, filter }) => ({
+          ...filters,
+          [category]: [...filters[category], filter]
+        }) , acc),
+    children: children
+      .filter(({ parent_id }) => parent_id === user.id)
+      .map(({ child_id }) => ({ id: child_id })),
+  }))
+}
+
+async function getMetadata() {
+  const movies = await sql.query('SELECT title, genre FROM movies')
+  const series = await sql.query('SELECT title, genre FROM series')
+  const seasons = await sql.query('SELECT title FROM seasons')
+  const episodes = await sql.query('SELECT title FROM episodes')
+  const actors = await sql.query('SELECT DISTINCT name FROM actors')
+  const directors = await sql.query('SELECT DISTINCT name FROM directors')
+
+  const genres = [
+    ...new Set([
+      ...movies.map(({ genre }) => genre),
+      ...series.map(({ genre }) => genre),
+    ]),
+  ]
+
+  return [
+    {
+      category: MOVIES.toLowerCase(),
+      list: movies.map(({ title }) => title),
+    },
+    {
+      category: SERIES.toLowerCase(),
+      list: series.map(({ title }) => title),
+    },
+    {
+      category: SEASONS.toLowerCase(),
+      list: seasons.map(({ title }) => title),
+    },
+    {
+      category: EPISODES.toLowerCase(),
+      list: episodes.map(({ title }) => title),
+    },
+    {
+      category: ACTORS.toLowerCase(),
+      list: actors.map(({ name }) => name),
+    },
+    {
+      category: DIRECTORS.toLowerCase(),
+      list: directors.map(({ name }) => name),
+    },
+    {
+      category: GENRES.toLowerCase(),
+      list: genres,
+    },
+  ]
 }
 
 function getMedia(type, params) {
@@ -78,6 +168,7 @@ async function getHistory({ id }) {
     ...baseQuery,
     media: `${GET_MOVIE_HISTORY} WHERE h.user_id = ${id}`,
   })
+
   const series = await searchDatabase({
     ...baseQuery,
     subscriptions: `SELECT * 
@@ -148,12 +239,30 @@ function getWhereStatement(conds) {
   }, '')
 }
 
+function removeMature(content_filtered, type) {
+  return content_filtered
+    ? { query: `${type}.is_mature = FALSE`, op: 'AND' }
+    : { query: '', op: '' }
+}
+
 function getSearch(params) {
-  const { category, filters, language, subtitles, id, newMedia } = params
+  const {
+    category,
+    filters,
+    language,
+    subtitles,
+    id,
+    content_filtered,
+    newMedia,
+  } = params
 
   const conds = getConds(params)
   const media = category === MOVIES ? getMovies(params) : getSeries(params)
   const ratings = getRatings(id, category)
+  const filterMature = removeMature(
+    content_filtered,
+    category === MOVIES ? 'mo' : 'se'
+  )
 
   const baseQuery = {
     locale: `SELECT * FROM locale l WHERE l.user_id = ${id}`,
@@ -167,7 +276,9 @@ function getSearch(params) {
   if (!conds.length) {
     const query = {
       ...baseQuery,
-      media: `${media} ${ratings}`,
+      media: `${media} ${ratings} ${
+        filterMature.query ? `WHERE ${filterMature.query}` : ''
+      }`,
     }
 
     return searchDatabase(query)
@@ -186,7 +297,8 @@ function getSearch(params) {
   const query = {
     ...baseQuery,
     media: `${media} ${directors} ${actors} ${languages} ${captions} ${ratings} 
-            WHERE ${statement} ${newMedia ? unwatched : ''}`,
+            WHERE ${`${filterMature.query} ${filterMature.op}`} (${statement} 
+            ${newMedia ? unwatched : ''})`,
   }
 
   return searchDatabase(query)
@@ -287,6 +399,12 @@ function updateDatabase(params) {
     case SUBTITLES:
       updateSubtitles(params)
       break
+    case MATURE_FILTER:
+      updateMatureFilter(params)
+      break
+    case CONTENT_FILTER:
+      updateContentFilter(params)
+      break
   }
 }
 
@@ -353,4 +471,33 @@ function updateSubtitles({ user_id, media_id, language }) {
   sql.query(query)
 }
 
-function insertIntoDatabase(params) {}
+function updateMatureFilter({ user_id }) {
+  const query = `UPDATE users
+                 SET content_filtered = NOT content_filtered
+                 WHERE id = ${user_id}`
+
+  sql.query(query)
+}
+
+function updateContentFilter({ user_id, category, val }) {
+  const query = `DELETE FROM filters
+                   WHERE user_id = ${user_id}
+                   AND category = '${category}'`
+
+  sql.query(query)
+
+  if (val.length) {
+    const values = val.reduce((filters, filter) => {
+      return filter === val[val.length - 1]
+        ? `${filters} (${user_id}, '${filter}', '${category}')`
+        : `${filters} (${user_id}, '${filter}', '${category}'),`
+    }, '')
+
+    setTimeout(() => {
+      const query = `INSERT INTO filters
+                     VALUES ${values}`
+
+      sql.query(query)
+    }, 200)
+  }
+}

@@ -14,6 +14,9 @@ import {
   RATING,
   SUBTITLES,
   MOVIE,
+  GENRE,
+  DIRECTOR,
+  ACTOR,
 } from '../constants'
 
 export default function Home({
@@ -42,6 +45,7 @@ export default function Home({
 
     onSearch({
       id: user.id,
+      content_filtered: user.content_filtered,
       term,
       category: activeCategory,
       filters: activeFilters,
@@ -105,6 +109,7 @@ export default function Home({
         <FilterSelection
           activeFilters={activeFilters}
           onSelection={handleFilterSelection}
+          categories={[NAME, GENRE, DIRECTOR, ACTOR]}
         />
         <Line />
 

@@ -10,6 +10,7 @@ const {
   MOVIES,
   LOGIN,
   SERIES,
+  METADATA,
   UPDATE,
 } = require('./constants')
 const app = require('express')()
@@ -22,7 +23,8 @@ io.on(CONNECTION, socket => {
     const users = await query(USERS)
     const languages = await query(LANGUAGES)
     const subtitles = await query(SUBTITLES)
-    callback(users, languages, subtitles)
+    const metadata = await query(METADATA)
+    callback(users, languages, subtitles, metadata)
   })
 
   socket.on(LOGIN, async (params, callback) => {

@@ -8,7 +8,10 @@ export default function Login({ handleLogin, users }) {
       <h3 className="has-text-centered title is-3">Who's watching?</h3>
       <Cards className="columns is-centered">
         {users.map(user => {
-          const name = user.content_filtered ? `${user.name} 👶` : user.name
+          const name =
+            Date.now() - new Date(user.birth_date) < 568025136000
+              ? `${user.name} 👶`
+              : user.name
           return (
             <Card
               key={user.id}
@@ -16,7 +19,7 @@ export default function Login({ handleLogin, users }) {
               onClick={() => handleLogin(user)}
             >
               <div className="card-content">
-                <p className="card-text is-centerered is-1">{name}</p>
+                <p className="card-text is-1">{name}</p>
               </div>
             </Card>
           )

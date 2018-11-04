@@ -82,9 +82,16 @@ CREATE TABLE users (
 );
 
 CREATE TABLE children (
-  child_id INTEGER REFERENCES users(id),
   parent_id INTEGER REFERENCES users(id),
+  child_id INTEGER REFERENCES users(id),
   PRIMARY KEY (child_id, parent_id)
+);
+
+CREATE TABLE filters (
+  user_id INTEGER REFERENCES users(id),
+  filter VARCHAR(255) NOT NULL,
+  category VARCHAR(255) NOT NULL,
+  PRIMARY KEY (user_id, filter, category)
 );
 
 CREATE TABLE subscriptions (

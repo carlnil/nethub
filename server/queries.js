@@ -16,13 +16,13 @@ module.exports = {
                       FULL OUTER JOIN ratings r
                       ON h.user_id = r.user_id 
                       AND h.media_id = r.media_id`,
-  GET_SERIES_HISTORY: `SELECT h.media_id id, m.title, s.title season, se.title series, r.rating, se.genre, h.date
+  GET_SERIES_HISTORY: `SELECT h.media_id id, e.title, s.title season, se.title series, r.rating, se.genre, h.date
                        FROM history h
-                       JOIN episodes m
-                       ON h.media_id = m.id
+                       JOIN episodes e
+                       ON h.media_id = e.id
                        JOIN seasons s
-                       ON m.season_number = s.season_number
-                       AND m.series_id = s.series_id
+                       ON e.season_number = s.season_number
+                       AND e.series_id = s.series_id
                        JOIN series se
                        ON s.series_id = se.id
                        FULL OUTER JOIN ratings r
@@ -45,4 +45,8 @@ module.exports = {
                         ON m.id = al.media_id`,
   GET_CAPTIONS: `JOIN closed_captions cc
                  ON m.id = cc.media_id`,
+  GET_CHILDREN: `SELECT *
+                 FROM children`,
+  GET_FILTERS: `SELECT *
+                FROM filters`
 }
