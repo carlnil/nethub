@@ -33,3 +33,6 @@ export const METADATA = 'metadata'
 export const FILTERS = 'filters'
 export const CONTENT_FILTER = 'content filter'
 export const COMPLETED_SEASONS = 'completed seasons'
+export const NEW_EPISODE = 'new episode'
+export const GET_SUBSCRIPTIONS = 'get subscriptions'
+

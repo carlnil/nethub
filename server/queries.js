@@ -16,7 +16,7 @@ module.exports = {
                       FULL OUTER JOIN ratings r
                       ON h.user_id = r.user_id 
                       AND h.media_id = r.media_id`,
-  GET_SERIES_HISTORY: `SELECT h.media_id id, e.title, s.title season, se.title series, s.season_number, s.episode_count, r.rating, se.genre, h.date
+  GET_SERIES_HISTORY: `SELECT h.media_id id, e.title, s.title season, se.title series, s.season_number, s.episode_count, r.rating, se.genre, h.date, s.series_id
                        FROM history h
                        JOIN episodes e
                        ON h.media_id = e.id

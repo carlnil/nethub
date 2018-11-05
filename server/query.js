@@ -1,8 +1,5 @@
 const {
   SEARCH,
-  DATABASE,
-  USER,
-  PASSWORD,
   MOVIES,
   HISTORY,
   NAME,
@@ -26,6 +23,7 @@ const {
   GENRES,
   MATURE_FILTER,
   COMPLETED_SEASONS,
+  SUBSCRIPTIONS,
 } = require('./constants')
 const {
   GET_USERS,
@@ -40,45 +38,42 @@ const {
   GET_FILTERS,
   GET_CHILDREN,
 } = require('./queries')
-const sql = require('pg-promise')()({
-  database: DATABASE,
-  user: USER,
-  password: PASSWORD,
-})
 
-module.exports = (type, params) => {
+module.exports = (sql, type, params) => {
   switch (type) {
     case USERS:
-      return getUsers()
+      return getUsers(sql)
     case METADATA:
-      return getMetadata()
+      return getMetadata(sql)
+    case SUBSCRIPTIONS:
+      return getSubscriptions(sql, params)
     case LANGUAGES:
       return sql.query(GET_LANGUAGES)
     case COMPLETED_SEASONS:
-      return getCompletedSeasonsMetadata(params)
+      return getCompletedSeasonsMetadata(sql, params)
     case SUBTITLES:
       return sql.query(GET_SUBTITLES)
     case MOVIES:
-      return getMedia(SEARCH, { ...params, category: MOVIES, first: true })
+      return getMedia(sql, SEARCH, { ...params, category: MOVIES, first: true })
     case SERIES:
-      return getMedia(SEARCH, { ...params, category: SERIES, first: true })
+      return getMedia(sql, SEARCH, { ...params, category: SERIES, first: true })
     case SEARCH:
-      return getMedia(SEARCH, params)
+      return getMedia(sql, SEARCH, params)
     case HISTORY:
-      return getMedia(HISTORY, params)
+      return getMedia(sql, HISTORY, params)
     case UPDATE:
-      updateDatabase(params)
+      updateDatabase(sql, params)
       break
     case MATURE_FILTER:
-      updateDatabase(params)
+      updateDatabase(sql, params)
       break
     case CONTENT_FILTER:
-      updateDatabase(params)
+      updateDatabase(sql, params)
       break
   }
 }
 
-async function getUsers() {
+async function getUsers(sql) {
   const users = await sql.query(GET_USERS)
   const children = await sql.query(GET_CHILDREN)
   const filters = await sql.query(GET_FILTERS)
@@ -107,7 +102,7 @@ async function getUsers() {
   }))
 }
 
-async function getMetadata() {
+async function getMetadata(sql) {
   const movies = await sql.query('SELECT title, genre FROM movies')
   const series = await sql.query('SELECT title, genre FROM series')
   const seasons = await sql.query('SELECT title FROM seasons')
@@ -154,11 +149,11 @@ async function getMetadata() {
   ]
 }
 
-function getMedia(type, params) {
-  return type === SEARCH ? getSearch(params) : getHistory(params)
+function getMedia(sql, type, params) {
+  return type === SEARCH ? getSearch(sql, params) : getHistory(sql, params)
 }
 
-async function getHistory({ id }) {
+async function getHistory(sql, { id }) {
   const baseQuery = {
     locale: `SELECT * FROM locale l WHERE l.user_id = ${id}`,
     personnel: {
@@ -167,23 +162,21 @@ async function getHistory({ id }) {
     },
   }
 
-  const movies = await searchDatabase({
+  const movies = await searchDatabase(sql, {
     ...baseQuery,
     media: `${GET_MOVIE_HISTORY} WHERE h.user_id = ${id}`,
   })
 
-  const series = await searchDatabase({
+  const series = await searchDatabase(sql, {
     ...baseQuery,
-    subscriptions: `SELECT * 
-                    FROM subscriptions s 
-                    WHERE s.user_id = ${id}`,
+    subscriptions: `SELECT * FROM subscriptions s WHERE s.user_id = ${id}`,
     media: `${GET_SERIES_HISTORY} WHERE h.user_id = ${id}`,
   })
 
   return { media: [...movies, ...series] }
 }
 
-function getCompletedSeasonsMetadata({ user_id }) {
+function getCompletedSeasonsMetadata(sql, { user_id }) {
   const query = `SELECT s.title, s.season_number, s.series_id, s.episode_count, COUNT(*) seen_episodes
                    FROM (
                      SELECT h.media_id id, s.title, s.season_number, s.episode_count, s.series_id
@@ -202,6 +195,16 @@ function getCompletedSeasonsMetadata({ user_id }) {
                    ) s
                    GROUP BY s.title, s.series_id, s.season_number, s.episode_count
                    HAVING COUNT(*) = s.episode_count`
+
+  return sql.query(query)
+}
+
+function getSubscriptions(sql, { id }) {
+  const query = `SELECT se.title, se.id
+                 FROM subscriptions s
+                 JOIN series se
+                 ON s.series_id = se.id
+                 WHERE s.user_id = ${id}`
 
   return sql.query(query)
 }
@@ -327,7 +330,7 @@ function removeMature(content_filtered, type) {
     : { query: '', op: '' }
 }
 
-function getSearch(params) {
+function getSearch(sql, params) {
   const {
     category,
     filters,
@@ -363,7 +366,7 @@ function getSearch(params) {
       }`,
     }
 
-    return searchDatabase(query)
+    return searchDatabase(sql, query)
   }
 
   const directors = filters.includes(DIRECTOR) ? GET_DIRECTORS : ''
@@ -383,10 +386,10 @@ function getSearch(params) {
             ${newMedia ? unwatched : ''})`,
   }
 
-  return searchDatabase(query)
+  return searchDatabase(sql, query)
 }
 
-async function searchDatabase(query) {
+async function searchDatabase(sql, query) {
   const media = await sql.query(query.media)
   const actors = await sql.query(query.personnel.actors)
   const directors = await sql.query(query.personnel.directors)
@@ -464,33 +467,33 @@ function getSeries({ language, subtitles }) {
   ON s.series_id = se.id`
 }
 
-function updateDatabase(params) {
+function updateDatabase(sql, params) {
   switch (params.type) {
     case HISTORY:
-      updateHistory(params)
+      updateHistory(sql, params)
       break
     case RATING:
-      updateRatings(params)
+      updateRatings(sql, params)
       break
     case SUBSCRIPTION:
-      updateSubscriptions(params)
+      updateSubscriptions(sql, params)
       break
     case LANGUAGE:
-      updateLanguages(params)
+      updateLanguages(sql, params)
       break
     case SUBTITLES:
-      updateSubtitles(params)
+      updateSubtitles(sql, params)
       break
     case MATURE_FILTER:
-      updateMatureFilter(params)
+      updateMatureFilter(sql, params)
       break
     case CONTENT_FILTER:
-      updateContentFilter(params)
+      updateContentFilter(sql, params)
       break
   }
 }
 
-function updateHistory({ media_id, user_id, seen }) {
+function updateHistory(sql, { media_id, user_id, seen }) {
   const query = seen
     ? `DELETE 
        FROM history h
@@ -511,7 +514,7 @@ function updateHistory({ media_id, user_id, seen }) {
   sql.query(query)
 }
 
-function updateRatings({ user_id, media_id, rating }) {
+function updateRatings(sql, { user_id, media_id, rating }) {
   const query = `INSERT INTO ratings
                  VALUES (${user_id}, ${media_id}, ${rating})
                  ON CONFLICT (user_id, media_id)
@@ -521,7 +524,7 @@ function updateRatings({ user_id, media_id, rating }) {
   sql.query(query)
 }
 
-function updateSubscriptions({ user_id, series_id, subscribed }) {
+function updateSubscriptions(sql, { user_id, series_id, subscribed }) {
   const query = subscribed
     ? `DELETE 
        FROM subscriptions s
@@ -533,7 +536,7 @@ function updateSubscriptions({ user_id, series_id, subscribed }) {
   sql.query(query)
 }
 
-function updateLanguages({ user_id, media_id, language }) {
+function updateLanguages(sql, { user_id, media_id, language }) {
   const query = `INSERT INTO locale
                  VALUES (${user_id}, ${media_id}, NULL, '${language}')
                  ON CONFLICT (user_id, media_id)
@@ -543,7 +546,7 @@ function updateLanguages({ user_id, media_id, language }) {
   sql.query(query)
 }
 
-function updateSubtitles({ user_id, media_id, language }) {
+function updateSubtitles(sql, { user_id, media_id, language }) {
   const query = `INSERT INTO locale
                  VALUES (${user_id}, ${media_id}, '${language}', NULL)
                  ON CONFLICT (user_id, media_id)
@@ -553,7 +556,7 @@ function updateSubtitles({ user_id, media_id, language }) {
   sql.query(query)
 }
 
-function updateMatureFilter({ user_id }) {
+function updateMatureFilter(sql, { user_id }) {
   const query = `UPDATE users
                  SET content_filtered = NOT content_filtered
                  WHERE id = ${user_id}`
@@ -561,7 +564,7 @@ function updateMatureFilter({ user_id }) {
   sql.query(query)
 }
 
-function updateContentFilter({ user_id, category, val }) {
+function updateContentFilter(sql, { user_id, category, val }) {
   const query = `DELETE FROM filters
                    WHERE user_id = ${user_id}
                    AND category = '${category}'`

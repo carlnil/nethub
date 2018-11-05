@@ -111,7 +111,9 @@ function getMediaInfo(
       )}
 
       {media.series && completed ? (
-        <button className="button is-disabled">season finished!</button>
+        <button className="button is-disabled" style={{ marginLeft: '0.5em' }}>
+          Season finished!
+        </button>
       ) : (
         false
       )}

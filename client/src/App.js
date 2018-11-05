@@ -14,6 +14,8 @@ import {
   MATURE_FILTER,
   CONTENT_FILTER,
   COMPLETED_SEASONS,
+  NEW_EPISODE,
+  GET_SUBSCRIPTIONS,
 } from './constants'
 import io from 'socket.io-client'
 
@@ -35,6 +37,7 @@ export default function App() {
   const [metadata, setMetadata] = useState(null)
   const [page, setPage] = useState(HOME)
   const [completedSeasons, setCompletedSeasons] = useState([])
+  const [subscriptions, setSubscriptions] = useState([])
 
   useEffect(
     () => {
@@ -48,9 +51,24 @@ export default function App() {
     [user]
   )
 
+  socket.on(NEW_EPISODE, data => {
+    if (subscriptions.length) notifyEpisode(Number(data))
+  })
+
   function handleSearch(params) {
     socket.emit(SEARCH, params, media => {
       setMedia(media)
+    })
+  }
+
+  function notifyEpisode(id) {
+    const series = subscriptions.find(series => series.id === id)
+    if (series) alert(`New ${series.title} episode out!`)
+  }
+
+  function getSubscriptions(params) {
+    socket.emit(GET_SUBSCRIPTIONS, params, subscriptions => {
+      setSubscriptions(subscriptions)
     })
   }
 
@@ -82,6 +100,7 @@ export default function App() {
   function onLogin(user) {
     getHistory(user)
     getCompletedSeasons({ user_id: user.id })
+    getSubscriptions(user)
 
     setUser({
       ...user,
