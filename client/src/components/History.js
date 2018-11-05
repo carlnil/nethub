@@ -11,6 +11,7 @@ export default function History({
   onSubscriptionChange,
   languages,
   subtitles,
+  completedSeasons,
 }) {
   return (
     <Container>
@@ -25,6 +26,7 @@ export default function History({
         onSubscriptionChange={onSubscriptionChange}
         languages={languages}
         subtitles={subtitles}
+        completedSeasons={completedSeasons}
       />
     </Container>
   )

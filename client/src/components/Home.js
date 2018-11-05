@@ -31,6 +31,7 @@ export default function Home({
   onLanguageChange,
   onSubtitlesChange,
   onSubscriptionChange,
+  completedSeasons,
 }) {
   const [activeCategory, setActiveCategory] = useState(MOVIES)
   const [activeFilters, setActiveFilters] = useState([NAME])
@@ -157,6 +158,7 @@ export default function Home({
           onSubscriptionChange={onSubscriptionChange}
           languages={languages}
           subtitles={subtitles}
+          completedSeasons={completedSeasons}
         />
       </div>
     </Container>

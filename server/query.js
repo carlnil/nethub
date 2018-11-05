@@ -25,6 +25,7 @@ const {
   DIRECTORS,
   GENRES,
   MATURE_FILTER,
+  COMPLETED_SEASONS,
 } = require('./constants')
 const {
   GET_USERS,
@@ -53,6 +54,8 @@ module.exports = (type, params) => {
       return getMetadata()
     case LANGUAGES:
       return sql.query(GET_LANGUAGES)
+    case COMPLETED_SEASONS:
+      return getCompletedSeasonsMetadata(params)
     case SUBTITLES:
       return sql.query(GET_SUBTITLES)
     case MOVIES:
@@ -177,7 +180,30 @@ async function getHistory({ id }) {
     media: `${GET_SERIES_HISTORY} WHERE h.user_id = ${id}`,
   })
 
-  return [...movies, ...series]
+  return { media: [...movies, ...series] }
+}
+
+function getCompletedSeasonsMetadata({ user_id }) {
+  const query = `SELECT s.title, s.season_number, s.series_id, s.episode_count, COUNT(*) seen_episodes
+                   FROM (
+                     SELECT h.media_id id, s.title, s.season_number, s.episode_count, s.series_id
+                     FROM history h
+                     JOIN episodes e
+                     ON h.media_id = e.id
+                     JOIN seasons s
+                     ON e.season_number = s.season_number
+                     AND e.series_id = s.series_id
+                     JOIN series se
+                     ON s.series_id = se.id
+                     FULL OUTER JOIN ratings r
+                     ON h.user_id = r.user_id 
+                     AND h.media_id = r.media_id
+                     WHERE h.user_id = ${user_id}
+                   ) s
+                   GROUP BY s.title, s.series_id, s.season_number, s.episode_count
+                   HAVING COUNT(*) = s.episode_count`
+
+  return sql.query(query)
 }
 
 function categoriesFrom(contentFilters) {
@@ -427,7 +453,7 @@ function getSeries({ language, subtitles }) {
   return `
   SELECT ${
     language || subtitles ? 'DISTINCT' : ''
-  } m.id, e.title, se.title series, s.title season, se.genre, r.rating, m.category, e.release_year, se.id series_id
+  } m.id, e.title, se.title series, s.title season, se.genre, r.rating, m.category, e.release_year, se.id series_id, s.season_number
   FROM media m
   JOIN episodes e
   ON m.id = e.id

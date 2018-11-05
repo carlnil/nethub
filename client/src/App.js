@@ -13,6 +13,7 @@ import {
   SUBTITLES,
   MATURE_FILTER,
   CONTENT_FILTER,
+  COMPLETED_SEASONS,
 } from './constants'
 import io from 'socket.io-client'
 
@@ -33,6 +34,7 @@ export default function App() {
   const [subtitles, setSubtitles] = useState([])
   const [metadata, setMetadata] = useState(null)
   const [page, setPage] = useState(HOME)
+  const [completedSeasons, setCompletedSeasons] = useState([])
 
   useEffect(
     () => {
@@ -54,7 +56,7 @@ export default function App() {
 
   function getHistory(params) {
     socket.emit(HISTORY, params, history => {
-      setHistory(history)
+      setHistory(history.media)
     })
   }
 
@@ -71,8 +73,15 @@ export default function App() {
     setPage(HOME)
   }
 
+  function getCompletedSeasons(params) {
+    socket.emit(COMPLETED_SEASONS, params, completedSeasons => {
+      setCompletedSeasons(completedSeasons)
+    })
+  }
+
   function onLogin(user) {
     getHistory(user)
+    getCompletedSeasons({ user_id: user.id })
 
     setUser({
       ...user,
@@ -186,6 +195,7 @@ export default function App() {
 
   function updateMedia() {
     setTimeout(() => {
+      getCompletedSeasons({ user_id: user.id })
       getMedia(user)
       getHistory(user)
     }, 100)
@@ -207,6 +217,7 @@ export default function App() {
             onLanguageChange={handleLanguageChange}
             onSubtitlesChange={handleSubtitlesChange}
             onSubscriptionChange={handleSubscriptionChange}
+            completedSeasons={completedSeasons}
           />
         )
       } else if (page === HISTORY) {
@@ -220,6 +231,7 @@ export default function App() {
             onSubscriptionChange={handleSubscriptionChange}
             languages={languages}
             subtitles={subtitles}
+            completedSeasons={completedSeasons}
           />
         )
       } else {

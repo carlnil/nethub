@@ -44,6 +44,7 @@ export default function Media({
   onSubscriptionChange,
   onLanguageChange,
   onSubtitlesChange,
+  completedSeasons,
 }) {
   return (
     <Container>
@@ -59,7 +60,8 @@ export default function Media({
           onLanguageChange,
           onSubtitlesChange,
           languages,
-          subtitles
+          subtitles,
+          completedSeasons
         )
 
         return filter ? (type === category ? mediaInfo : false) : mediaInfo
@@ -77,13 +79,18 @@ function getMediaInfo(
   onLanguageChange,
   onSubtitlesChange,
   languages,
-  subtitles
+  subtitles,
+  completedSeasons
 ) {
   const title = media.is_mature ? `${media.title} 🔞` : media.title
   const directors = getPersonnel(media.directors)
   const actors = getPersonnel(media.actors)
 
   const seen = history.some(({ title }) => title === media.title)
+  const completed = completedSeasons.some(
+    ({ season_number, series_id }) =>
+      media.season_number === season_number && media.series_id === series_id
+  )
 
   return (
     <div key={media.id}>
@@ -99,6 +106,12 @@ function getMediaInfo(
         >
           {media.subscribed ? 'Unsubscribe' : 'Subscribe'}
         </button>
+      ) : (
+        false
+      )}
+
+      {media.series && completed ? (
+        <button className="button is-disabled">season finished!</button>
       ) : (
         false
       )}

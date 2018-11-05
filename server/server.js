@@ -12,6 +12,7 @@ const {
   SERIES,
   METADATA,
   UPDATE,
+  COMPLETED_SEASONS,
 } = require('./constants')
 const app = require('express')()
 const server = require('http').Server(app)
@@ -31,6 +32,11 @@ io.on(CONNECTION, socket => {
     const movies = await query(MOVIES, params)
     const series = await query(SERIES, params)
     callback(movies, series)
+  })
+
+  socket.on(COMPLETED_SEASONS, async (params, callback) => {
+    const completedSeasons = await query(COMPLETED_SEASONS, params)
+    callback(completedSeasons)
   })
 
   socket.on(SEARCH, async (params, callback) => {

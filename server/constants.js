@@ -38,4 +38,5 @@ module.exports = {
   EPISODES: 'episodes',
   DIRECTORS: 'directors',
   GENRES: 'genres',
+  COMPLETED_SEASONS: 'completed seasons',
 }
