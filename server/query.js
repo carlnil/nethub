@@ -180,28 +180,76 @@ async function getHistory({ id }) {
   return [...movies, ...series]
 }
 
-function queryFrom(filter, category, term) {
+function categoriesFrom(contentFilters) {
+  return Object.keys(contentFilters).reduce((o, category) => {
+    return {
+      ...o,
+      [category]: `NOT SIMILAR TO '%(${contentFilters[category]
+        .join('|')
+        .toLowerCase()})%'`,
+    }
+  }, {})
+}
+
+function queryFrom(filter, category, term, contentFilters) {
+  const {
+    movies,
+    episodes,
+    seasons,
+    series,
+    genres,
+    directors,
+    actors,
+  } = categoriesFrom(contentFilters)
+
+  const filtered = (phrase, filter) =>
+    filter.length > 29 ? `${phrase} ${filter}` : ''
+
   switch (filter) {
     case NAME:
       return category === MOVIES
-        ? `LOWER(mo.title) LIKE LOWER('%${term}%')`
-        : `(LOWER(e.title) LIKE LOWER('%${term}%') OR
-           LOWER(s.title) LIKE LOWER('%${term}%') OR
-           LOWER(se.title) LIKE LOWER('%${term}%'))`
+        ? `(LOWER(mo.title) LIKE LOWER('%${term}%') ${filtered(
+            'AND LOWER(mo.title)',
+            movies
+          )})`
+        : `((LOWER(e.title) LIKE LOWER('%${term}%') ${filtered(
+            'AND LOWER(e.title)',
+            episodes
+          )}) OR
+           (LOWER(s.title) LIKE LOWER('%${term}%') ${filtered(
+            'AND LOWER(s.title)',
+            seasons
+          )}) OR
+           (LOWER(se.title) LIKE LOWER('%${term}%') ${filtered(
+            'AND LOWER(se.title)',
+            series
+          )}))`
     case GENRE:
       return category === MOVIES
-        ? `LOWER(mo.genre) LIKE LOWER('%${term}%')`
-        : `LOWER(se.genre) LIKE LOWER('%${term}%')`
+        ? `(LOWER(mo.genre) LIKE LOWER('%${term}%') ${filtered(
+            'AND LOWER(mo.genre)',
+            genres
+          )})`
+        : `(LOWER(se.genre) LIKE LOWER('%${term}%') ${filtered(
+            'AND LOWER(se.genre)',
+            genres
+          )})`
     case DIRECTOR:
-      return `LOWER(d.name) LIKE LOWER('%${term}%')`
+      return `(LOWER(d.name) LIKE LOWER('%${term}%') ${filtered(
+        'AND LOWER(d.name)',
+        directors
+      )})`
     case ACTOR:
-      return `LOWER(a.name) LIKE LOWER('%${term}%')`
+      return `(LOWER(a.name) LIKE LOWER('%${term}%') ${filtered(
+        'AND LOWER(a.name)',
+        actors
+      )})`
   }
 }
 
-function filterBy(filters = [], category, term) {
+function filterBy(filters = [], category, term, contentFilters) {
   return filters.map(filter => ({
-    query: queryFrom(filter, category, term),
+    query: queryFrom(filter, category, term, contentFilters),
     op: 'OR',
   }))
 }
@@ -218,8 +266,16 @@ function withSubtitles(language) {
   return language ? { query: `cc.language = '${language}'`, op: 'AND' } : ''
 }
 
-function getConds({ filters, category, term, rating, language, subtitles }) {
-  const filteredBy = filterBy(filters, category, term)
+function getConds({
+  filters,
+  category,
+  term,
+  rating,
+  language,
+  subtitles,
+  contentFilters,
+}) {
+  const filteredBy = filterBy(filters, category, term, contentFilters)
   const ratingOf = ratingFrom(rating)
   const languageOf = withLanguage(language)
   const subtitlesOf = withSubtitles(subtitles)

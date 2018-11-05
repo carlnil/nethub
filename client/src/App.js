@@ -72,7 +72,6 @@ export default function App() {
   }
 
   function onLogin(user) {
-    getMedia(user)
     getHistory(user)
 
     setUser({
@@ -214,9 +213,6 @@ export default function App() {
         return (
           <History
             history={history}
-            onHistory={getHistory}
-            user={user}
-            page={page}
             onHistoryChange={handleHistoryChange}
             onRatingChange={handleRatingChange}
             onLanguageChange={handleLanguageChange}

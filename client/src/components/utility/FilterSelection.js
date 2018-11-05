@@ -5,6 +5,7 @@ export default function FilterSelection({
   onSelection: handleChange,
   categories,
   activeFilters,
+  disabled,
 }) {
   return (
     <CheckboxGroup
@@ -14,7 +15,11 @@ export default function FilterSelection({
     >
       {categories.map(category => (
         <label key={category} style={{ marginRight: '1em' }}>
-          <Checkbox value={category} style={{ marginRight: '0.5em' }} />{' '}
+          <Checkbox
+            value={category}
+            style={{ marginRight: '0.5em' }}
+            disabled={disabled}
+          />{' '}
           {category}
         </label>
       ))}

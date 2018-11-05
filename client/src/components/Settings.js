@@ -96,15 +96,16 @@ const basicInfo = (
       <h3 className="title is-3">Filter based on...</h3>
       {metadata.map(({ category, list }) => {
         return (
-          <React.Fragment key={category}>
+          <div key={category}>
             <h4 className="title is-4">... {category}</h4>
             <FilterSelection
+              disabled={disabled}
               activeFilters={user.contentFilters[category]}
               categories={list}
               onSelection={val => handleFilterSelection(user, category, val)}
             />
             <br />
-          </React.Fragment>
+          </div>
         )
       })}
     </div>

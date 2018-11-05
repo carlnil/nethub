@@ -1,13 +1,9 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import styled from 'styled-components'
 import Media from './Media'
-import { HISTORY } from '../constants'
 
 export default function History({
-  onHistory,
   history,
-  user,
-  page,
   onHistoryChange,
   onRatingChange,
   onLanguageChange,
@@ -16,8 +12,6 @@ export default function History({
   languages,
   subtitles,
 }) {
-  useEffect(() => onHistory({ id: user.id }), [page === HISTORY, history])
-
   return (
     <Container>
       <Media
