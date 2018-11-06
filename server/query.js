@@ -29,8 +29,6 @@ const {
 } = require('./constants')
 const {
   GET_USERS,
-  GET_MOVIE_HISTORY,
-  GET_SERIES_HISTORY,
   GET_DIRECTORS,
   GET_ACTORS,
   GET_AUDIO_LANGUAGES,

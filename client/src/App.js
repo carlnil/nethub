@@ -40,6 +40,7 @@ export default function App() {
   const [page, setPage] = useState(HOME)
   const [completedSeasons, setCompletedSeasons] = useState([])
   const [subscriptions, setSubscriptions] = useState([])
+  const [searchFilters, setSearchFilters] = useState([])
 
   function onSettings() {
     setMedia([])
@@ -231,7 +232,7 @@ export default function App() {
   function updateMedia() {
     setTimeout(() => {
       getCompletedSeasons({ user_id: user.id })
-      getMedia(user)
+      getMedia({ ...searchFilters, ...user })
       getHistory(user)
     }, 100)
   }
@@ -253,6 +254,7 @@ export default function App() {
             onSubtitlesChange={handleSubtitlesChange}
             onSubscriptionChange={handleSubscriptionChange}
             completedSeasons={completedSeasons}
+            setSearchFilters={setSearchFilters}
           />
         )
       } else if (page === HISTORY) {
@@ -267,6 +269,7 @@ export default function App() {
             languages={languages}
             subtitles={subtitles}
             completedSeasons={completedSeasons}
+            setSearchFilters={setSearchFilters}
           />
         )
       } else {

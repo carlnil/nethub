@@ -33,6 +33,7 @@ export default function Home({
   onSubtitlesChange,
   onSubscriptionChange,
   completedSeasons,
+  setSearchFilters,
 }) {
   const [activeCategory, setActiveCategory] = useState(MOVIES)
   const [activeFilters, setActiveFilters] = useState([NAME])
@@ -44,7 +45,7 @@ export default function Home({
   function handleSubmit(e) {
     e.preventDefault()
     const term = e.target[INPUT].value
-    onSearch({
+    const params = {
       id: user.id,
       contentFilters: user.contentFilters,
       content_filtered: user.content_filtered,
@@ -55,7 +56,9 @@ export default function Home({
       language: activeLanguage,
       subtitles: activeSubtitles,
       newMedia,
-    })
+    }
+    setSearchFilters(params)
+    onSearch(params)
   }
 
   function getLanguages(languages) {
@@ -86,9 +89,8 @@ export default function Home({
   }
 
   function handleNew() {
-    setNewMedia(!newMedia)
+    setNewMedia(old => !old)
   }
-
 
   return (
     <Container className="columns">
@@ -150,6 +152,7 @@ export default function Home({
           languages={languages}
           subtitles={subtitles}
           completedSeasons={completedSeasons}
+          setSearchFilters={setSearchFilters}
         />
       </div>
     </Container>
