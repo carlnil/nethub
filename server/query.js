@@ -216,18 +216,40 @@ async function getHistory(sql, { id }) {
     },
   }
 
-  const movies = await searchDatabase(sql, {
-    ...baseQuery,
-    media: `${GET_MOVIE_HISTORY} WHERE h.user_id = ${id}`,
-  })
-
-  const series = await searchDatabase(sql, {
+  const media = await searchDatabase(sql, {
     ...baseQuery,
     subscriptions: `SELECT * FROM subscriptions s WHERE s.user_id = ${id}`,
-    media: `${GET_SERIES_HISTORY} WHERE h.user_id = ${id}`,
+    media: `SELECT m.id, m.title, m.season, m.series, m.date, r.rating, m.genre
+            FROM (
+              SELECT m.id, mo.title, NULL season, NULL series, h.date, h.user_id, mo.genre, NULL episode_count
+              FROM media m
+              JOIN movies mo
+              ON mo.id = m.id
+              JOIN history h
+              ON h.media_id = mo.id
+              UNION
+              SELECT m.id, e.title, s.title season, se.title series, h.date, h.user_id, se.genre, s.episode_count
+              FROM media m
+              JOIN episodes e
+              ON e.id = m.id
+              JOIN seasons s
+              ON s.series_id = e.series_id
+              AND s.season_number = e.season_number
+              JOIN series se
+              ON se.id = e.series_id
+              JOIN history h
+              ON h.media_id = e.id
+            ) m
+            FULL OUTER JOIN (
+             SELECT r.media_id, r.rating
+             FROM ratings r
+             WHERE r.user_id = ${id}
+            ) r
+            ON r.media_id = m.id
+            WHERE m.user_id = ${id};`,
   })
 
-  return { media: [...movies, ...series] }
+  return media
 }
 
 function getCompletedSeasonsMetadata(sql, { user_id }) {

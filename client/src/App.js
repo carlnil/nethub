@@ -78,7 +78,7 @@ export default function App() {
 
   function getHistory(params) {
     socket.emit(HISTORY, params, history => {
-      setHistory(history.media)
+      setHistory(history)
     })
   }
 
