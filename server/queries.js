@@ -28,15 +28,6 @@ module.exports = {
                        FULL OUTER JOIN ratings r
                        ON h.user_id = r.user_id 
                        AND h.media_id = r.media_id`,
-  GET_HISTORY_COUNT: `SELECT COUNT(*)
-                      FROM history h
-                      JOIN episodes e
-                      ON h.media_id = e.id
-                      JOIN seasons s
-                      ON e.series_id = s.series_id
-                      AND e.season_number = s.season_number
-                      JOIN series se
-                      ON s.series_id = se.id`,
   GET_DIRECTORS: `JOIN directors d
                   ON m.id = d.media_id`,
   GET_ACTORS: `JOIN actors a
@@ -48,5 +39,16 @@ module.exports = {
   GET_CHILDREN: `SELECT *
                  FROM children`,
   GET_FILTERS: `SELECT *
-                FROM filters`
+                FROM filters`,
+  GET_TOTAL_EPISODES_PER_SERIES: `SELECT s.series, COUNT(*) episodes
+                                  FROM (
+                                    SELECT e.title episode, se.title series
+                                    FROM episodes e
+                                    JOIN seasons s
+                                    ON e.series_id = s.series_id
+                                    AND e.season_number = s.season_number
+                                    JOIN series se
+                                    ON s.series_id = se.id
+                                  ) s
+                                  GROUP BY series`,
 }

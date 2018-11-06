@@ -32,16 +32,11 @@ const sql = require('pg-promise')()({
 })
 
 io.on(CONNECTION, socket => {
-  let connection
   sql.connect({ direct: true }).then(sco => {
-    connection = sco
     sco.client.on('notification', data => {
       socket.emit(NEW_EPISODE, data.payload[data.payload.length - 1])
     })
-    return sco.none('LISTEN $1~', 'watchers')
   })
-
-  if (connection) connection.done()
 
   socket.on(CONNECTED, async callback => {
     const users = await query(sql, USERS)
@@ -83,4 +78,3 @@ io.on(CONNECTION, socket => {
 })
 
 server.listen(PORT)
-module.exports = { io }

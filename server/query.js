@@ -24,6 +24,7 @@ const {
   MATURE_FILTER,
   COMPLETED_SEASONS,
   SUBSCRIPTIONS,
+  REMAINING_EPISODES,
 } = require('./constants')
 const {
   GET_USERS,
@@ -37,6 +38,7 @@ const {
   GET_CAPTIONS,
   GET_FILTERS,
   GET_CHILDREN,
+  GET_TOTAL_EPISODES_PER_SERIES,
 } = require('./queries')
 
 module.exports = (sql, type, params) => {
@@ -330,6 +332,20 @@ function removeMature(content_filtered, type) {
     : { query: '', op: '' }
 }
 
+function watchedEpisodes(user_id) {
+  return `SELECT se.title series, COUNT(*) episodes
+          FROM history h
+          JOIN episodes e
+          ON h.media_id = e.id
+          JOIN seasons s
+          ON e.series_id = s.series_id
+          AND e.season_number = s.season_number
+          JOIN series se
+          ON s.series_id = se.id
+          WHERE h.user_id = ${user_id}
+          GROUP BY series`
+}
+
 function getSearch(sql, params) {
   const {
     category,
@@ -341,6 +357,7 @@ function getSearch(sql, params) {
     newMedia,
   } = params
 
+  const remainingEpisodes = filters.includes(REMAINING_EPISODES)
   const conds = getConds(params)
   const media = category === MOVIES ? getMovies(params) : getSeries(params)
   const ratings = getRatings(id, category)
@@ -374,6 +391,11 @@ function getSearch(sql, params) {
   const languages = language ? GET_AUDIO_LANGUAGES : ''
   const captions = subtitles ? GET_CAPTIONS : ''
   const statement = getWhereStatement(conds)
+  const remaining = `SELECT w.series
+                     FROM ((${GET_TOTAL_EPISODES_PER_SERIES}) t
+                     JOIN (${watchedEpisodes(id)}) w
+                     ON w.series = t.series)
+                     WHERE t.episodes > w.episodes`
   const unwatched = `AND m.id NOT IN (
                      SELECT h.media_id id
                      FROM history h
@@ -382,8 +404,10 @@ function getSearch(sql, params) {
   const query = {
     ...baseQuery,
     media: `${media} ${directors} ${actors} ${languages} ${captions} ${ratings} 
-            WHERE ${`${filterMature.query} ${filterMature.op}`} (${statement} 
-            ${newMedia ? unwatched : ''})`,
+            WHERE ${remainingEpisodes ? `se.title = (${remaining}) AND` : ''} (${`${
+      filterMature.query
+    } ${filterMature.op}`} (${statement} 
+            ${newMedia ? unwatched : ''}))`,
   }
 
   return searchDatabase(sql, query)

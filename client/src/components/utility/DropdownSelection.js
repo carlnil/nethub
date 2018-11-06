@@ -5,10 +5,11 @@ export default function DropdownSelection({
   selections = [],
   defaultValue = 0,
   selected,
+  disabled = false
 }) {
   return (
     <div className="select">
-      <select defaultValue={selected} onChange={onChange}>
+      <select defaultValue={selected} onChange={onChange} disabled={disabled}>
         <option value={defaultValue}>-</option>
         {selections.map(option => (
           <option key={option} value={option}>

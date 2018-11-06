@@ -1,5 +1,7 @@
 CREATE OR REPLACE FUNCTION notify_trigger() 
-RETURNS trigger AS $$ DECLARE BEGIN   
+RETURNS trigger AS $$ 
+DECLARE 
+BEGIN   
 PERFORM pg_notify('watchers', 'series_id ' || NEW.series_id);   
 RETURN new; 
 END; $$ 

@@ -17,6 +17,7 @@ import {
   GENRE,
   DIRECTOR,
   ACTOR,
+  REMAINING_EPISODES,
 } from '../constants'
 
 export default function Home({
@@ -125,7 +126,11 @@ export default function Home({
         <FilterSelection
           activeFilters={activeFilters}
           onSelection={handleFilterSelection}
-          categories={[NAME, GENRE, DIRECTOR, ACTOR]}
+          categories={
+            activeCategory === MOVIES
+              ? [NAME, GENRE, DIRECTOR, ACTOR]
+              : [NAME, GENRE, DIRECTOR, ACTOR, REMAINING_EPISODES]
+          }
         />
         <Line />
 

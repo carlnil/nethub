@@ -140,6 +140,7 @@ function getMediaInfo(
             defVal: 0,
             selected: media.rating,
             onChange: e => onRatingChange(media, e),
+            disabled: !seen,
           },
           {
             category: LANGUAGE,
@@ -155,7 +156,7 @@ function getMediaInfo(
             selected: media.locale.cc_language,
             onChange: e => onSubtitlesChange(media, e),
           },
-        ].map(({ category, options, defVal, onChange, selected }) => (
+        ].map(({ category, options, defVal, onChange, selected, disabled }) => (
           <div key={category} className="column">
             <h5 className="title is-5">{category}:</h5>
             <DropdownSelection
@@ -163,6 +164,7 @@ function getMediaInfo(
               selections={options}
               defaultValue={defVal}
               selected={selected}
+              disabled={disabled}
             />
           </div>
         ))}
