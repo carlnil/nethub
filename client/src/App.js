@@ -18,7 +18,6 @@ import {
   NEW_EPISODE,
   GET_SUBSCRIPTIONS,
   LOCALE,
-  SETTINGS,
 } from './constants'
 import io from 'socket.io-client'
 

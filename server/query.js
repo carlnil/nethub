@@ -231,25 +231,17 @@ async function getHistory(sql, { id }) {
 }
 
 function getCompletedSeasonsMetadata(sql, { user_id }) {
-  const query = `SELECT s.title, s.season_number, s.series_id, s.episode_count, COUNT(*) seen_episodes
-                   FROM (
-                     SELECT h.media_id id, s.title, s.season_number, s.episode_count, s.series_id
-                     FROM history h
-                     JOIN episodes e
-                     ON h.media_id = e.id
-                     JOIN seasons s
-                     ON e.season_number = s.season_number
-                     AND e.series_id = s.series_id
-                     JOIN series se
-                     ON s.series_id = se.id
-                     FULL OUTER JOIN ratings r
-                     ON h.user_id = r.user_id 
-                     AND h.media_id = r.media_id
-                     WHERE h.user_id = ${user_id}
-                   ) s
-                   GROUP BY s.title, s.series_id, s.season_number, s.episode_count
-                   HAVING COUNT(*) = s.episode_count`
-
+  const query = `SELECT s.title, s.season_number, s.series_id, s.episode_count
+                 FROM episodes e
+                 JOIN seasons s
+                 ON s.series_id = e.series_id
+                 AND s.season_number = e.season_number
+                 JOIN series se
+                 ON se.id = e.series_id
+                 JOIN completed_seasons cs
+                 ON cs.series_id = se.id
+                 AND cs.season_number = s.season_number
+                 WHERE cs.user_id = ${user_id}`
   return sql.query(query)
 }
 
@@ -389,11 +381,8 @@ function watchedEpisodes(user_id) {
           FROM history h
           JOIN episodes e
           ON h.media_id = e.id
-          JOIN seasons s
-          ON e.series_id = s.series_id
-          AND e.season_number = s.season_number
           JOIN series se
-          ON s.series_id = se.id
+          ON e.series_id = se.id
           WHERE h.user_id = ${user_id}
           GROUP BY series`
 }
@@ -407,7 +396,6 @@ function getSearch(sql, params) {
     id,
     content_filtered,
     newMedia,
-    contentFilters,
   } = params
 
   const conds = getConds(params)
@@ -417,17 +405,6 @@ function getSearch(sql, params) {
     content_filtered,
     category === MOVIES ? 'mo' : 'se'
   )
-
-  const localeFilter = {
-    languages: `AND l.audio_language 
-                NOT SIMILAR TO '%(${contentFilters[LANGUAGES.toLowerCase()]
-                  .join('|')
-                  .toLowerCase()})%'}`,
-    subtitles: `AND l.audio_language 
-                NOT SIMILAR TO '%(${contentFilters[SUBTITLES.toLowerCase()]
-                  .join('|')
-                  .toLowerCase()})%'}`,
-  }
 
   const baseQuery = {
     locale: `SELECT * FROM locale l WHERE l.user_id = ${id}`,
@@ -469,7 +446,7 @@ function getSearch(sql, params) {
     ...baseQuery,
     media: `${media} ${directors} ${actors} ${languages} ${captions} ${ratings} 
             WHERE ${
-              remainingEpisodes ? `se.title = (${remaining}) AND` : ''
+              remainingEpisodes ? `se.title IN (${remaining}) AND` : ''
             } (${`${filterMature.query} ${filterMature.op}`} (${statement} 
             ${newMedia ? unwatched : ''}))`,
   }

@@ -1,3 +1,88 @@
+CREATE FUNCTION SET_COMPLETED_SEASON() 
+RETURNS TRIGGER AS 
+$$
+BEGIN
+  IF (
+      (
+        SELECT s.episode_count
+        FROM episodes e
+        JOIN seasons s
+        ON s.series_id = e.series_id
+        AND s.season_number = e.season_number
+        JOIN series se
+        ON se.id = e.series_id
+        WHERE e.id = NEW.media_id 
+      ) = (
+        SELECT COUNT(*)
+        FROM history h
+        JOIN episodes e
+        ON e.id = h.media_id
+        JOIN seasons s
+        ON s.series_id = e.series_id
+        AND s.season_number = e.season_number
+        JOIN series se
+        ON se.id = e.series_id
+        WHERE h.user_id = NEW.user_id
+        AND s.title = (
+          SELECT s.title
+          FROM episodes e
+          JOIN seasons s
+          ON s.series_id = e.series_id
+          AND s.season_number = e.season_number
+          WHERE e.id = NEW.media_id
+        )
+        GROUP BY se.title
+      )
+  ) THEN 
+         INSERT INTO completed_seasons 
+         VALUES (NEW.user_id, 
+           (SELECT e.series_id 
+            FROM episodes e 
+            WHERE e.id = NEW.media_id),
+           (SELECT s.season_number
+            FROM seasons s
+            JOIN episodes e
+            ON e.season_number = s.season_number
+            AND e.series_id = s.series_id
+            WHERE e.id = NEW.media_id
+           )
+         );
+  END IF;
+RETURN NEW;
+END; 
+$$ 
+LANGUAGE plpgsql;
+
+CREATE FUNCTION DELETE_COMPLETED_SEASON()
+RETURNS TRIGGER AS
+$$
+BEGIN
+DELETE FROM completed_seasons cs
+        WHERE cs.user_id = OLD.user_id
+        AND cs.series_id = (SELECT e.series_id 
+                              FROM episodes e 
+                              WHERE e.id = OLD.media_id)
+        AND cs.season_number = (SELECT s.season_number
+                              FROM seasons s
+                              JOIN episodes e
+                              ON e.season_number = s.season_number
+                              AND e.series_id = s.series_id
+                              WHERE e.id = OLD.media_id);
+  RETURN OLD;
+END;
+$$
+LANGUAGE plpgsql;
+
+CREATE TRIGGER ON_HISTORY_INSERT
+AFTER INSERT ON history
+FOR EACH ROW
+EXECUTE PROCEDURE SET_COMPLETED_SEASON();
+
+CREATE TRIGGER ON_HISTORY_DELETE
+AFTER DELETE ON history
+FOR EACH ROW
+EXECUTE PROCEDURE DELETE_COMPLETED_SEASON();
+
 CREATE OR REPLACE FUNCTION notify_trigger() 
 RETURNS trigger AS $$ 
 DECLARE 
