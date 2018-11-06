@@ -42,4 +42,5 @@ module.exports = {
   NEW_EPISODE: 'new episode',
   GET_SUBSCRIPTIONS: 'get subscriptions',
   SUBSCRIPTIONS: 'subscriptions',
+  LOCALE: 'locale',
 }

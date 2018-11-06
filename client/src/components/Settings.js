@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import styled from 'styled-components'
 import {
   NAME,
@@ -16,7 +16,11 @@ export default function Settings({
   handleFilterChange,
   handleFilterSelection,
   metadata,
+  handleSettings,
 }) {
+  useEffect(() => {
+    handleSettings()
+  }, [])
   return (
     <Container>
       <h3 className="title is-3">User</h3>

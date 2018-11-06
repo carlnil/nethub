@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 import Media from './Media'
 import CategorySelection from './utility/CategorySelection'
@@ -40,21 +40,6 @@ export default function Home({
   const [activeSubtitles, setActiveSubtitles] = useState('')
   const [rating, setRating] = useState(0)
   const [newMedia, setNewMedia] = useState(false)
-
-  useEffect(() => {
-    onSearch({
-      id: user.id,
-      contentFilters: user.contentFilters,
-      content_filtered: user.content_filtered,
-      term: '',
-      category: activeCategory,
-      filters: activeFilters,
-      rating,
-      language: activeLanguage,
-      subtitles: activeSubtitles,
-      newMedia,
-    })
-  }, [])
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -103,6 +88,7 @@ export default function Home({
   function handleNew() {
     setNewMedia(!newMedia)
   }
+
 
   return (
     <Container className="columns">

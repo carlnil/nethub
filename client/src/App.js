@@ -9,6 +9,7 @@ import {
   UPDATE,
   RATING,
   SUBSCRIPTION,
+  LANGUAGES,
   LANGUAGE,
   SUBTITLES,
   MATURE_FILTER,
@@ -16,6 +17,8 @@ import {
   COMPLETED_SEASONS,
   NEW_EPISODE,
   GET_SUBSCRIPTIONS,
+  LOCALE,
+  SETTINGS,
 } from './constants'
 import io from 'socket.io-client'
 
@@ -39,12 +42,14 @@ export default function App() {
   const [completedSeasons, setCompletedSeasons] = useState([])
   const [subscriptions, setSubscriptions] = useState([])
 
+  function onSettings() {
+    setMedia([])
+  }
+
   useEffect(
     () => {
-      socket.emit(CONNECTED, (users, languages, subtitles, metadata) => {
+      socket.emit(CONNECTED, (users, metadata) => {
         setUsers(users)
-        setLanguages(languages)
-        setSubtitles(subtitles)
         setMetadata(metadata)
       })
     },
@@ -101,6 +106,11 @@ export default function App() {
     getHistory(user)
     getCompletedSeasons({ user_id: user.id })
     getSubscriptions(user)
+
+    socket.emit(LOCALE, user, (languages, subtitles) => {
+      setLanguages(languages)
+      setSubtitles(subtitles)
+    })
 
     setUser({
       ...user,
@@ -180,6 +190,13 @@ export default function App() {
   }
 
   function handleFilterSelection(filteredUser, category, val) {
+    if (category === LANGUAGES || category === SUBTITLES) {
+      socket.emit(LOCALE, user, (languages, subtitles) => {
+        setLanguages(languages)
+        setSubtitles(subtitles)
+      })
+    }
+
     if (filteredUser.id === user.id) {
       setUser({
         ...user,
@@ -257,6 +274,7 @@ export default function App() {
         return (
           <Settings
             user={user}
+            handleSettings={onSettings}
             handleFilterChange={handleFilterChange}
             handleFilterSelection={handleFilterSelection}
             metadata={metadata}

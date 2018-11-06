@@ -24,12 +24,11 @@ const {
   MATURE_FILTER,
   COMPLETED_SEASONS,
   SUBSCRIPTIONS,
+  LOCALE,
   REMAINING_EPISODES,
 } = require('./constants')
 const {
   GET_USERS,
-  GET_LANGUAGES,
-  GET_SUBTITLES,
   GET_MOVIE_HISTORY,
   GET_SERIES_HISTORY,
   GET_DIRECTORS,
@@ -49,12 +48,10 @@ module.exports = (sql, type, params) => {
       return getMetadata(sql)
     case SUBSCRIPTIONS:
       return getSubscriptions(sql, params)
-    case LANGUAGES:
-      return sql.query(GET_LANGUAGES)
+    case LOCALE:
+      return getLocale(sql, params)
     case COMPLETED_SEASONS:
       return getCompletedSeasonsMetadata(sql, params)
-    case SUBTITLES:
-      return sql.query(GET_SUBTITLES)
     case MOVIES:
       return getMedia(sql, SEARCH, { ...params, category: MOVIES, first: true })
     case SERIES:
@@ -87,6 +84,8 @@ async function getUsers(sql) {
     actors: [],
     directors: [],
     genres: [],
+    languages: [],
+    subtitles: [],
   }
 
   // prettier-ignore
@@ -104,6 +103,45 @@ async function getUsers(sql) {
   }))
 }
 
+async function getLocale(sql, { contentFilters }) {
+  const langsFilter = contentFilters[LANGUAGES.toLowerCase()].length
+    ? contentFilters[LANGUAGES.toLowerCase()]
+    : false
+
+  const subsFilter = contentFilters[SUBTITLES.toLowerCase()].length
+    ? contentFilters[SUBTITLES.toLowerCase()]
+    : false
+
+  const languages = await sql.query(`
+      SELECT al.media_id, al.language, m.category
+      FROM audio_languages al
+      JOIN media m
+      ON al.media_id = m.id
+      ${
+        langsFilter
+          ? `WHERE LOWER(al.language) 
+             NOT SIMILAR TO '%(${langsFilter.join('|').toLowerCase()})%'`
+          : ''
+      }`)
+
+  const subtitles = await sql.query(`
+      SELECT cc.media_id, cc.language, m.category
+      FROM closed_captions cc
+      JOIN media m
+      ON cc.media_id = m.id
+      ${
+        subsFilter
+          ? `WHERE LOWER(cc.language) 
+             NOT SIMILAR TO '%(${subsFilter.join('|').toLowerCase()})%'`
+          : ''
+      }`)
+
+  return {
+    languages,
+    subtitles,
+  }
+}
+
 async function getMetadata(sql) {
   const movies = await sql.query('SELECT title, genre FROM movies')
   const series = await sql.query('SELECT title, genre FROM series')
@@ -111,6 +149,12 @@ async function getMetadata(sql) {
   const episodes = await sql.query('SELECT title FROM episodes')
   const actors = await sql.query('SELECT DISTINCT name FROM actors')
   const directors = await sql.query('SELECT DISTINCT name FROM directors')
+  const subtitles = await sql.query(
+    'SELECT DISTINCT language FROM closed_captions'
+  )
+  const languages = await sql.query(
+    'SELECT DISTINCT language FROM audio_languages'
+  )
 
   const genres = [
     ...new Set([
@@ -147,6 +191,14 @@ async function getMetadata(sql) {
     {
       category: GENRES.toLowerCase(),
       list: genres,
+    },
+    {
+      category: LANGUAGES.toLowerCase(),
+      list: languages.map(({ language }) => language),
+    },
+    {
+      category: SUBTITLES.toLowerCase(),
+      list: subtitles.map(({ language }) => language),
     },
   ]
 }
@@ -355,9 +407,9 @@ function getSearch(sql, params) {
     id,
     content_filtered,
     newMedia,
+    contentFilters,
   } = params
 
-  const remainingEpisodes = filters.includes(REMAINING_EPISODES)
   const conds = getConds(params)
   const media = category === MOVIES ? getMovies(params) : getSeries(params)
   const ratings = getRatings(id, category)
@@ -365,6 +417,17 @@ function getSearch(sql, params) {
     content_filtered,
     category === MOVIES ? 'mo' : 'se'
   )
+
+  const localeFilter = {
+    languages: `AND l.audio_language 
+                NOT SIMILAR TO '%(${contentFilters[LANGUAGES.toLowerCase()]
+                  .join('|')
+                  .toLowerCase()})%'}`,
+    subtitles: `AND l.audio_language 
+                NOT SIMILAR TO '%(${contentFilters[SUBTITLES.toLowerCase()]
+                  .join('|')
+                  .toLowerCase()})%'}`,
+  }
 
   const baseQuery = {
     locale: `SELECT * FROM locale l WHERE l.user_id = ${id}`,
@@ -386,6 +449,7 @@ function getSearch(sql, params) {
     return searchDatabase(sql, query)
   }
 
+  const remainingEpisodes = filters.includes(REMAINING_EPISODES)
   const directors = filters.includes(DIRECTOR) ? GET_DIRECTORS : ''
   const actors = filters.includes(ACTOR) ? GET_ACTORS : ''
   const languages = language ? GET_AUDIO_LANGUAGES : ''
@@ -404,9 +468,9 @@ function getSearch(sql, params) {
   const query = {
     ...baseQuery,
     media: `${media} ${directors} ${actors} ${languages} ${captions} ${ratings} 
-            WHERE ${remainingEpisodes ? `se.title = (${remaining}) AND` : ''} (${`${
-      filterMature.query
-    } ${filterMature.op}`} (${statement} 
+            WHERE ${
+              remainingEpisodes ? `se.title = (${remaining}) AND` : ''
+            } (${`${filterMature.query} ${filterMature.op}`} (${statement} 
             ${newMedia ? unwatched : ''}))`,
   }
 

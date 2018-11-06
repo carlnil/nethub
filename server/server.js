@@ -5,9 +5,8 @@ const {
   CONNECTED,
   PORT,
   USERS,
-  LANGUAGES,
-  SUBTITLES,
   MOVIES,
+  LOCALE,
   LOGIN,
   SERIES,
   METADATA,
@@ -19,6 +18,8 @@ const {
   NEW_EPISODE,
   GET_SUBSCRIPTIONS,
   SUBSCRIPTIONS,
+  LANGUAGES,
+  SUBTITLES,
 } = require('./constants')
 const app = require('express')()
 const server = require('http').Server(app)
@@ -32,18 +33,22 @@ const sql = require('pg-promise')()({
 })
 
 io.on(CONNECTION, socket => {
-  sql.connect({ direct: true }).then(sco => {
-    sco.client.on('notification', data => {
-      socket.emit(NEW_EPISODE, data.payload[data.payload.length - 1])
-    })
-  })
+  // sql.connect({ direct: true }).then(sco => {
+  //   sco.client.on('notification', data => {
+  //     socket.emit(NEW_EPISODE, data.payload[data.payload.length - 1])
+  //   })
+  // })
 
   socket.on(CONNECTED, async callback => {
     const users = await query(sql, USERS)
-    const languages = await query(sql, LANGUAGES)
-    const subtitles = await query(sql, SUBTITLES)
     const metadata = await query(sql, METADATA)
-    callback(users, languages, subtitles, metadata)
+    callback(users, metadata)
+  })
+
+  socket.on(LOCALE, async (params, callback) => {
+    const locale = await query(sql, LOCALE, params)
+    const { languages, subtitles } = locale
+    callback(languages, subtitles)
   })
 
   socket.on(GET_SUBSCRIPTIONS, async (params, callback) => {
